@@ -1,12 +1,11 @@
+import dotenv from "dotenv";
 import express from "express";
 import lusca from "lusca";
 import User from ".";
-import { jwt, sequelize } from "./util/secrets";
 
-const user = new User({
-  jwt,
-  sequelize
-});
+dotenv.config();
+
+const user = new User();
 
 const app = express();
 app.set("port", process.env.PORT || 3000);

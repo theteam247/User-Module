@@ -1,36 +1,38 @@
 import crypto from "crypto";
+import _ from "lodash";
+import dot from "dot-object";
 import nodemailer from "nodemailer";
 import express, { Response, Request, NextFunction, Router } from "express";
+import createError from "http-errors";
 import compression from "compression";
 import bodyParser from "body-parser";
 import { check, sanitize, validationResult } from "express-validator";
-import JWT, { RequestHandler, Options as JWTOptions } from "express-jwt";
-import jsonwebtoken, { SignOptions } from "jsonwebtoken";
-import {
-  Sequelize,
-  Options as SequelizeOptions,
-  ModelAttributes
-} from "sequelize";
+import JWT from "express-jwt";
+import jsonwebtoken from "jsonwebtoken";
+import { Sequelize, Op } from "sequelize";
 import UserModel from "./modals/user";
-
-export interface UserOptions {
-  jwt: JWTOptions & SignOptions;
-  sequelize: Sequelize | SequelizeOptions;
-  model?: ModelAttributes;
-}
+import template from "./util/template";
+import { UserOptions, SendGridOptions } from "./types/user";
 
 class User {
   public options: UserOptions;
 
   public sequelize: Sequelize;
-  public middleware: RequestHandler;
   public router: Router;
+  public sendgrid: SendGridOptions;
 
-  public constructor(options: UserOptions) {
-    this.options = options;
+  public get middleware() {
+    return JWT(this.options.jwt);
+  }
+
+  public constructor(options?: UserOptions) {
+    const env = {
+      ...process.env
+    };
+    dot.object(env);
+    this.options = _.merge(env, options);
 
     this.initSequlize();
-    this.initJWT();
     this.initRouter();
   }
 
@@ -44,10 +46,6 @@ class User {
       sequelize: this.sequelize,
       attributes: this.options.model
     }).sync();
-  }
-
-  private initJWT() {
-    this.middleware = JWT(this.options.jwt);
   }
 
   private initRouter() {
@@ -65,16 +63,19 @@ class User {
 
     this.router.post("/signup", this.postSignup);
     this.router.post("/login", this.postLogin);
-    this.router.post("/account", this.postAccount);
-    this.router.delete("/account", this.deleteAccount);
     this.router.post("/password/forgot", this.postForgotPassword);
     this.router.post("/password/reset", this.postResetPassword);
 
+    this.router.post("/account", this.middleware, this.postAccount);
+    this.router.delete("/account", this.middleware, this.deleteAccount);
+
     this.router.use(
       (error: Error, req: Request, res: Response, next: NextFunction) => {
-        res.status(500).json({
-          error
-        });
+        if (error instanceof createError.HttpError) {
+          return res.status(error.status).json(error);
+        }
+
+        return res.status(500).json(error);
       }
     );
   }
@@ -84,57 +85,58 @@ class User {
     res: Response,
     next: NextFunction
   ) => {
-    await check("email", "Email is not valid")
-      .isEmail()
-      .run(req);
-    await check("password", "Password must be at least 4 characters long")
-      .isLength({ min: 6 })
-      .run(req);
-    await check("confirmPassword", "Passwords do not match")
-      .equals(req.body.password)
-      .run(req);
-    await sanitize("email")
-      .normalizeEmail({ gmail_remove_dots: false })
-      .run(req);
+    try {
+      await check("email", "Email is not valid")
+        .isEmail()
+        .run(req);
+      await check("password", "Password must be at least 4 characters long")
+        .isLength({ min: 6 })
+        .run(req);
+      await sanitize("email")
+        .normalizeEmail({ gmail_remove_dots: false })
+        .run(req);
 
-    const errors = validationResult(req);
+      const errors = validationResult(req);
 
-    if (!errors.isEmpty()) {
-      return res.status(400).json(errors);
-    }
-
-    const userFound = await UserModel.findOne({
-      where: {
-        email: req.body.email
+      if (!errors.isEmpty()) {
+        throw errors;
       }
-    });
 
-    if (userFound) {
-      return res.status(400).json({
-        error: "Account with that email address already exists."
-      });
-    }
-
-    const userCreated = await UserModel.create({
-      email: req.body.email,
-      password: req.body.password
-    });
-
-    const { secret, ...jwtOptions } = this.options.jwt;
-    jsonwebtoken.sign(
-      userCreated.toJSON(),
-      secret as string,
-      jwtOptions,
-      (err, token) => {
-        if (err) {
-          return res.status(400).json(err);
+      const userFound = await UserModel.findOne({
+        where: {
+          email: req.body.email
         }
+      });
 
-        res.json({
-          token
-        });
+      if (userFound) {
+        throw new createError.NotFound(
+          `Account with that email address already exists.`
+        );
       }
-    );
+
+      const user = await UserModel.create({
+        email: req.body.email,
+        password: req.body.password
+      });
+
+      const { secret, ...jwtOptions } = this.options.jwt;
+      jsonwebtoken.sign(
+        user.toJSON(),
+        secret as string,
+        jwtOptions,
+        (err, token) => {
+          if (err) {
+            return res.status(400).json(err);
+          }
+
+          res.json({
+            token
+          });
+        }
+      );
+    } catch (error) {
+      next(error);
+    }
   };
 
   private postLogin = async (
@@ -142,145 +144,237 @@ class User {
     res: Response,
     next: NextFunction
   ) => {
-    await check("email")
-      .isEmail()
-      .run(req);
-    await check("password")
-      .isLength({
-        min: 6
-      })
-      .run(req);
-    await sanitize("email")
-      .normalizeEmail({
-        gmail_remove_dots: false
-      })
-      .run(req);
+    try {
+      await check("email")
+        .isEmail()
+        .run(req);
+      await check("password")
+        .isLength({
+          min: 6
+        })
+        .run(req);
+      await sanitize("email")
+        .normalizeEmail({
+          gmail_remove_dots: false
+        })
+        .run(req);
 
-    const errors = validationResult(req);
+      const errors = validationResult(req);
 
-    if (!errors.isEmpty()) {
-      return res.status(400).json(errors);
-    }
-
-    const { email, password } = req.body;
-    const user = await UserModel.findOne({
-      where: {
-        email: email.toLowerCase()
+      if (!errors.isEmpty()) {
+        throw errors;
       }
-    });
 
-    if (!user) {
-      return res.status(400).json({
-        error: `Email ${email} not found.`
-      });
-    }
-
-    if (!user.comparePassword(password)) {
-      return res.status(400).json({
-        error: "Invalid email or password."
-      });
-    }
-
-    const { secret, ...jwtOptions } = this.options.jwt;
-    jsonwebtoken.sign(
-      user.toJSON(),
-      secret as string,
-      jwtOptions,
-      (err, token) => {
-        if (err) {
-          return res.status(400).json(err);
+      const { email, password } = req.body;
+      const user = await UserModel.findOne({
+        where: {
+          email: email.toLowerCase()
         }
+      });
 
-        res.json({
-          token
-        });
+      if (!user) {
+        throw new createError.NotFound(`Email ${email} not found.`);
       }
-    );
-  };
 
-  private postAccount = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {};
-  private deleteAccount = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {};
+      if (!user.comparePassword(password)) {
+        throw new createError.BadRequest(`Invalid email or password.`);
+      }
+
+      const { secret, ...jwtOptions } = this.options.jwt;
+      jsonwebtoken.sign(
+        user.toJSON(),
+        secret as string,
+        jwtOptions,
+        (err, token) => {
+          if (err) {
+            return res.status(400).json(err);
+          }
+
+          res.json({
+            token
+          });
+        }
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
 
   private postForgotPassword = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
-    await check("email")
-      .isEmail()
-      .run(req);
-    await sanitize("email")
-      .normalizeEmail({
-        gmail_remove_dots: false
-      })
-      .run(req);
+    try {
+      await check("email")
+        .isEmail()
+        .run(req);
+      await sanitize("email")
+        .normalizeEmail({
+          gmail_remove_dots: false
+        })
+        .run(req);
 
-    const errors = validationResult(req);
+      const errors = validationResult(req);
 
-    if (!errors.isEmpty()) {
-      return res.status(400).json(errors);
-    }
+      if (!errors.isEmpty()) {
+        throw errors;
+      }
 
-    // createRandomToken
-    const token = await new Promise<string>((resolve, reject) => {
-      crypto.randomBytes(16, (err, buf) => {
-        if (err) {
-          return reject(err);
+      // createRandomToken
+      const token = await new Promise<string>((resolve, reject) => {
+        crypto.randomBytes(16, (err, buf) => {
+          if (err) {
+            return reject(err);
+          }
+          return resolve(buf.toString("hex"));
+        });
+      });
+
+      // setRandomToken
+      const user = await UserModel.findOne({
+        where: {
+          email: req.body.email
         }
-        return resolve(buf.toString("hex"));
       });
-    });
-
-    // setRandomToken
-    const user = await UserModel.findOne({
-      where: {
-        email: req.body.email
+      if (!user) {
+        throw new createError.NotFound(
+          `Account with that email address does not exist.`
+        );
       }
-    });
-    if (!user) {
-      return res.status(400).json({
-        error: "Account with that email address does not exist."
+
+      const passwordResetExpires = new Date();
+      passwordResetExpires.setHours(passwordResetExpires.getHours() + 1);
+
+      await user.update({
+        passwordResetToken: token,
+        passwordResetExpires
       });
+
+      // sendForgotPasswordEmail
+      const transporter = nodemailer.createTransport({
+        service: "SendGrid",
+        auth: {
+          user: this.sendgrid.username,
+          pass: this.sendgrid.password
+        }
+      });
+
+      await transporter.sendMail({
+        to: user.email,
+        from: this.sendgrid.from,
+        subject: "Reset your password on Hackathon Starter",
+        text: template(this.sendgrid.template.forgotPassword)(user as any)
+      });
+
+      res.json({
+        message: `An e-mail has been sent to ${user.email} with further instructions.`
+      });
+    } catch (error) {
+      next(error);
     }
-
-    const passwordResetExpires = new Date();
-    passwordResetExpires.setHours(passwordResetExpires.getHours() + 1);
-
-    await user.update({
-      passwordResetToken: token,
-      passwordResetExpires
-    });
-
-    // sendForgotPasswordEmail
-    const transporter = nodemailer.createTransport({
-      service: "SendGrid",
-      auth: {
-        user: process.env.SENDGRID_USER,
-        pass: process.env.SENDGRID_PASSWORD
-      }
-    });
-
-    await transporter.sendMail({
-      to: user.email,
-      from: process.env.SENDGRID_FROM,
-      subject: "Reset your password on Hackathon Starter",
-      text: `http://${req.headers.host}/reset/${token}`
-    });
   };
 
   private postResetPassword = async (
     req: Request,
     res: Response,
     next: NextFunction
-  ) => {};
+  ) => {
+    try {
+      const user = await UserModel.findOne({
+        where: {
+          passwordResetToken: req.params.token,
+          passwordResetExpires: {
+            [Op.gt]: Date.now()
+          }
+        }
+      });
+
+      if (!user) {
+        throw new createError.BadRequest(
+          `Password reset token is invalid or has expired.`
+        );
+      }
+
+      await user.update({
+        password: req.body.password,
+        passwordResetToken: undefined,
+        passwordResetExpires: undefined
+      });
+
+      // sendResetPasswordEmail
+      const transporter = nodemailer.createTransport({
+        service: "SendGrid",
+        auth: {
+          user: this.sendgrid.username,
+          pass: this.sendgrid.password
+        }
+      });
+
+      await transporter.sendMail({
+        to: user.email,
+        from: this.sendgrid.from,
+        subject: "Your password has been changed",
+        text: template(this.sendgrid.template.resetPassword)(user as any)
+      });
+
+      res.json({
+        message: `Success! Your password has been changed.`
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  private postAccount = async (
+    req: Request & { user: UserModel },
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const user = await UserModel.findOne({
+        where: {
+          id: req.user.id
+        }
+      });
+
+      if (!user) {
+        throw new createError.NotFound(`User ID ${req.user.id} not found.`);
+      }
+
+      await user.update(req.body);
+
+      res.json(user.toJSON());
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  private deleteAccount = async (
+    req: Request & { user: UserModel },
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const user = await UserModel.findOne({
+        where: {
+          id: req.user.id
+        }
+      });
+
+      if (!user) {
+        throw new createError.NotFound(`User ID ${req.user.id} not found.`);
+      }
+
+      await user.destroy();
+
+      res.json({
+        message: `Your account has been deleted.`
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 export default User;

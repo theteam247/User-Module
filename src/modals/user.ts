@@ -11,7 +11,7 @@ import {
 } from "sequelize";
 
 class User extends Model {
-  private password!: string;
+  public password!: string;
   public id!: number;
   public email!: string;
   public name: string;
@@ -102,10 +102,18 @@ class User extends Model {
       {
         sequelize: opts.sequelize,
         ...opts.options,
+        paranoid: true,
         hooks: {
           ...(opts.options || {}).hooks,
           beforeCreate: async (user: User) => {
             user.password = await bcryptjs.hash(user.password, 10);
+          },
+          beforeUpdate: async (user: User) => {
+            const password = await bcryptjs.hash(user.password, 10);
+            user.set({
+              ...user.toJSON(),
+              password
+            });
           }
         }
       }
