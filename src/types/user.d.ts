@@ -5,22 +5,21 @@ import {
   Options as SequelizeOptions,
   ModelAttributes
 } from "sequelize";
-
-export interface SendGridOptions {
-  from: string;
-  username: string;
-  password: string;
-  template: {
-    forgotPassword: string;
-    resetPassword: string;
-  };
-}
+import SMTPTransport from "nodemailer/lib/smtp-transport";
 
 export interface UserOptions {
   jwt: JWTOptions & SignOptions;
   sequelize: Sequelize | SequelizeOptions;
   model?: ModelAttributes;
-  sendgrid: SendGridOptions;
+  nodemailer?: any;
+  mail?: {
+    from: string;
+    template: {
+      activate: string;
+      forgotPassword: string;
+      resetPassword: string;
+    };
+  };
 }
 
 declare module "user";

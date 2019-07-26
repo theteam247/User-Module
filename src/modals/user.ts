@@ -7,13 +7,15 @@ import {
   Model,
   Sequelize,
   ModelAttributes,
-  ModelOptions
+  ModelOptions,
+  ARRAY
 } from "sequelize";
 
 class User extends Model {
   public password!: string;
   public id!: number;
   public email!: string;
+  public permissions: string[];
   public name: string;
   public gender: string;
   public picture: string;
@@ -46,6 +48,9 @@ class User extends Model {
   }) {
     User.init(
       {
+        // extra attrs
+        ...opts.attributes,
+
         id: {
           type: INTEGER,
           autoIncrement: true,
@@ -60,6 +65,11 @@ class User extends Model {
         password: {
           type: TEXT,
           allowNull: false
+        },
+        permissions: {
+          type: STRING,
+          allowNull: false,
+          defaultValue: ""
         },
 
         // profile
@@ -94,10 +104,7 @@ class User extends Model {
         passwordResetExpires: {
           type: DATE,
           allowNull: true
-        },
-
-        // extra attrs
-        ...opts.attributes
+        }
       },
       {
         sequelize: opts.sequelize,

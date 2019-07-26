@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import _ from "lodash";
 import dot from "dot-object";
-import nodemailer from "nodemailer";
+import nodemailer, { Transporter } from "nodemailer";
 import express, { Response, Request, NextFunction, Router } from "express";
 import createError from "http-errors";
 import compression from "compression";
@@ -9,20 +9,22 @@ import bodyParser from "body-parser";
 import { check, sanitize, validationResult } from "express-validator";
 import JWT from "express-jwt";
 import jsonwebtoken from "jsonwebtoken";
+import permissions from "express-jwt-permissions";
 import { Sequelize, Op } from "sequelize";
 import UserModel from "./modals/user";
 import template from "./util/template";
-import { UserOptions, SendGridOptions } from "./types/user";
+import { UserOptions } from "./types/user";
+
+const guard = permissions({});
 
 class User {
+  private sequelize: Sequelize;
+  private transporter: Transporter;
+
   public options: UserOptions;
-
-  public sequelize: Sequelize;
   public router: Router;
-  public sendgrid: SendGridOptions;
-
-  public get middleware() {
-    return JWT(this.options.jwt);
+  public middleware(required: string | string[] | string[][] = "") {
+    return [JWT(this.options.jwt), guard.check(required)];
   }
 
   public constructor(options?: UserOptions) {
@@ -34,6 +36,7 @@ class User {
 
     this.initSequlize();
     this.initRouter();
+    this.initTransport();
   }
 
   private initSequlize() {
@@ -46,6 +49,10 @@ class User {
       sequelize: this.sequelize,
       attributes: this.options.model
     }).sync();
+  }
+
+  private initTransport() {
+    this.transporter = nodemailer.createTransport(this.options.nodemailer);
   }
 
   private initRouter() {
@@ -66,8 +73,8 @@ class User {
     this.router.post("/password/forgot", this.postForgotPassword);
     this.router.post("/password/reset", this.postResetPassword);
 
-    this.router.post("/account", this.middleware, this.postAccount);
-    this.router.delete("/account", this.middleware, this.deleteAccount);
+    this.router.post("/account", this.middleware(), this.postAccount);
+    this.router.delete("/account", this.middleware(), this.deleteAccount);
 
     this.router.use(
       (error: Error, req: Request, res: Response, next: NextFunction) => {
@@ -128,6 +135,8 @@ class User {
           if (err) {
             return res.status(400).json(err);
           }
+
+          // TODO: send email
 
           res.json({
             token
@@ -251,20 +260,11 @@ class User {
         passwordResetExpires
       });
 
-      // sendForgotPasswordEmail
-      const transporter = nodemailer.createTransport({
-        service: "SendGrid",
-        auth: {
-          user: this.sendgrid.username,
-          pass: this.sendgrid.password
-        }
-      });
-
-      await transporter.sendMail({
+      await this.transporter.sendMail({
         to: user.email,
-        from: this.sendgrid.from,
+        from: this.options.mail.from,
         subject: "Reset your password on Hackathon Starter",
-        text: template(this.sendgrid.template.forgotPassword)(user as any)
+        text: template(this.options.mail.template.forgotPassword)(user as any)
       });
 
       res.json({
@@ -303,19 +303,12 @@ class User {
       });
 
       // sendResetPasswordEmail
-      const transporter = nodemailer.createTransport({
-        service: "SendGrid",
-        auth: {
-          user: this.sendgrid.username,
-          pass: this.sendgrid.password
-        }
-      });
 
-      await transporter.sendMail({
+      await this.transporter.sendMail({
         to: user.email,
-        from: this.sendgrid.from,
+        from: this.options.mail.from,
         subject: "Your password has been changed",
-        text: template(this.sendgrid.template.resetPassword)(user as any)
+        text: template(this.options.mail.template.resetPassword)(user as any)
       });
 
       res.json({
