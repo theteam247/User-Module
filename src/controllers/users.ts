@@ -38,7 +38,7 @@ export const postSignupEmail = async (
 
     // TODO: send email
 
-    res.json({
+    res.cookie("token", token).json({
       token
     });
   } catch (error) {
@@ -81,7 +81,7 @@ export const postSignupPhone = async (
 
     const token = await sign(user.toJSON(), req.config.options);
 
-    res.json({
+    res.cookie("token", token).json({
       token
     });
   } catch (error) {
@@ -128,7 +128,7 @@ export const postLoginEmail = async (
 
     const token = await sign(user.toJSON(), req.config.options);
 
-    res.json({
+    res.cookie("token", token).json({
       token
     });
   } catch (error) {
@@ -174,7 +174,7 @@ export const postLoginPhone = async (
 
     const token = await sign(user.toJSON(), req.config.options);
 
-    res.json({
+    res.cookie("token", token).json({
       token
     });
   } catch (error) {
@@ -218,7 +218,7 @@ export const postLogin2fa = async (
 
     const token = await sign(user.toJSON(), req.config.options);
 
-    res.json({
+    res.cookie("token", token).json({
       token
     });
   } catch (error) {

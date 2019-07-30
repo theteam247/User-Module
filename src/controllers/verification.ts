@@ -37,7 +37,7 @@ export default async (
       req.config.options
     );
 
-    res.json({
+    res.cookie("token", token).json({
       token
     });
   } catch (error) {
