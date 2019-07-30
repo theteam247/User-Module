@@ -1,6 +1,5 @@
 import bcryptjs from "bcryptjs";
 import {
-  INTEGER,
   STRING,
   TEXT,
   DATE,
@@ -8,13 +7,16 @@ import {
   Sequelize,
   ModelAttributes,
   ModelOptions,
-  ARRAY
+  UUID,
+  UUIDV1,
+  UUIDV4
 } from "sequelize";
 
 class User extends Model {
   public password!: string;
   public id!: number;
   public email!: string;
+  public phoneNumber: string;
   public permissions: string[];
   public name: string;
   public gender: string;
@@ -52,19 +54,26 @@ class User extends Model {
         ...opts.attributes,
 
         id: {
-          type: INTEGER,
-          autoIncrement: true,
+          type: UUID,
+          allowNull: false,
+          defaultValue: UUIDV4,
           primaryKey: true
         },
         email: {
           type: STRING,
-          allowNull: false,
+          allowNull: true,
+          unique: true
+        },
+        phoneNumber: {
+          type: STRING,
+          allowNull: true,
           unique: true
         },
         // hash
         password: {
           type: TEXT,
-          allowNull: false
+          allowNull: false,
+          defaultValue: UUIDV1
         },
         permissions: {
           type: STRING,
@@ -109,6 +118,13 @@ class User extends Model {
       {
         sequelize: opts.sequelize,
         ...opts.options,
+        validate: {
+          emailOrPhone() {
+            if (!this.email && !this.phoneNumber) {
+              throw new Error("Require either email or phoneNumber");
+            }
+          }
+        },
         paranoid: true,
         hooks: {
           ...(opts.options || {}).hooks,

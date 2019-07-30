@@ -6,9 +6,11 @@ import {
   ModelAttributes
 } from "sequelize";
 import SMTPTransport from "nodemailer/lib/smtp-transport";
+import { TwilioClientOptions } from "twilio/lib/rest/Twilio";
 
 export interface UserOptions {
-  jwt: JWTOptions & SignOptions;
+  jwt: JWTOptions;
+  sign: SignOptions;
   sequelize: Sequelize | SequelizeOptions;
   model?: ModelAttributes;
   nodemailer?: any;
@@ -19,6 +21,12 @@ export interface UserOptions {
       forgotPassword: string;
       resetPassword: string;
     };
+  };
+  twilio?: {
+    accountSid: string;
+    authToken: string;
+    opts: TwilioClientOptions;
+    verifySid: string;
   };
 }
 

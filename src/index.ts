@@ -1,60 +1,78 @@
-import crypto from "crypto";
 import _ from "lodash";
 import dot from "dot-object";
 import nodemailer, { Transporter } from "nodemailer";
+import twilio, { Twilio } from "twilio";
 import express, { Response, Request, NextFunction, Router } from "express";
 import createError from "http-errors";
 import compression from "compression";
 import bodyParser from "body-parser";
-import { check, sanitize, validationResult } from "express-validator";
-import JWT from "express-jwt";
-import jsonwebtoken from "jsonwebtoken";
+import jwt from "express-jwt";
 import permissions from "express-jwt-permissions";
-import { Sequelize, Op } from "sequelize";
+import { Sequelize } from "sequelize";
 import UserModel from "./modals/user";
-import template from "./util/template";
 import { UserOptions } from "./types/user";
+import * as users from "./controllers/users";
+import verification from "./controllers/verification";
 
 const guard = permissions({});
 
 class User {
-  private sequelize: Sequelize;
-  private transporter: Transporter;
-
   public options: UserOptions;
   public router: Router;
   public middleware(required: string | string[] | string[][] = "") {
-    return [JWT(this.options.jwt), guard.check(required)];
+    return [
+      jwt(this.options.jwt),
+      ...(required && required.length ? [guard.check(required)] : [])
+    ];
   }
+
+  public transporter: Transporter;
+  public twilio: Twilio;
 
   public constructor(options?: UserOptions) {
     const env = {
       ...process.env
     };
     dot.object(env);
-    this.options = _.merge(env, options);
+    this.options = _.merge(
+      env,
+      {
+        jwt: {
+          getToken: (req: Request) => {
+            if (
+              req.headers.authorization &&
+              req.headers.authorization.split(" ")[0] === "Bearer"
+            ) {
+              return req.headers.authorization.split(" ")[1];
+            } else if (req.query && req.query.token) {
+              return req.query.token;
+            } else if (req.cookies && req.cookies.token) {
+              return req.cookies.token;
+            }
+            return null;
+          }
+        }
+      },
+      options
+    );
 
     this.initSequlize();
+    this.initTransporter();
+    this.initTwilio();
     this.initRouter();
-    this.initTransport();
   }
 
   private initSequlize() {
-    this.sequelize =
+    const sequelize =
       this.options.sequelize instanceof Sequelize
         ? this.options.sequelize
         : new Sequelize(this.options.sequelize);
 
     UserModel.define({
-      sequelize: this.sequelize,
+      sequelize: sequelize,
       attributes: this.options.model
     }).sync();
   }
-
-  private initTransport() {
-    this.transporter = nodemailer.createTransport(this.options.nodemailer);
-  }
-
   private initRouter() {
     this.router = express.Router();
 
@@ -67,14 +85,29 @@ class User {
       })
     );
     this.router.use(compression());
+    this.router.use((req: Request & { config: User }, res, next) => {
+      req.config = this;
+      next();
+    });
 
-    this.router.post("/signup", this.postSignup);
-    this.router.post("/login", this.postLogin);
-    this.router.post("/password/forgot", this.postForgotPassword);
-    this.router.post("/password/reset", this.postResetPassword);
+    if (this.options.twilio) {
+      this.router.post("/verification", verification);
+      this.router.post(
+        "/signup/phone",
+        this.middleware(),
+        users.postSignupPhone
+      );
+      this.router.post("/login/2fa", this.middleware(), users.postLogin2fa);
+    }
+    this.router.post("/signup/email", users.postSignupEmail);
+    this.router.post("/login/email", users.postLoginEmail);
+    this.router.post("/login/phone", users.postLoginPhone);
 
-    this.router.post("/account", this.middleware(), this.postAccount);
-    this.router.delete("/account", this.middleware(), this.deleteAccount);
+    this.router.post("/password/forgot", users.postForgotPassword);
+    this.router.post("/password/reset", users.postResetPassword);
+
+    this.router.post("/account", this.middleware(), users.postAccount);
+    this.router.delete("/account", this.middleware(), users.deleteAccount);
 
     this.router.use(
       (error: Error, req: Request, res: Response, next: NextFunction) => {
@@ -82,292 +115,30 @@ class User {
           return res.status(error.status).json(error);
         }
 
-        return res.status(500).json(error);
+        const err = JSON.stringify(error);
+
+        return res.status(500).json(
+          err === "{}"
+            ? {
+                message: error.message
+              }
+            : error
+        );
       }
     );
   }
 
-  private postSignup = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      await check("email", "Email is not valid")
-        .isEmail()
-        .run(req);
-      await check("password", "Password must be at least 4 characters long")
-        .isLength({ min: 6 })
-        .run(req);
-      await sanitize("email")
-        .normalizeEmail({ gmail_remove_dots: false })
-        .run(req);
+  private initTransporter() {
+    this.transporter = nodemailer.createTransport(this.options.nodemailer);
+  }
 
-      const errors = validationResult(req);
-
-      if (!errors.isEmpty()) {
-        throw errors;
-      }
-
-      const userFound = await UserModel.findOne({
-        where: {
-          email: req.body.email
-        }
-      });
-
-      if (userFound) {
-        throw new createError.NotFound(
-          `Account with that email address already exists.`
-        );
-      }
-
-      const user = await UserModel.create({
-        email: req.body.email,
-        password: req.body.password
-      });
-
-      const { secret, ...jwtOptions } = this.options.jwt;
-      jsonwebtoken.sign(
-        user.toJSON(),
-        secret as string,
-        jwtOptions,
-        (err, token) => {
-          if (err) {
-            return res.status(400).json(err);
-          }
-
-          // TODO: send email
-
-          res.json({
-            token
-          });
-        }
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  private postLogin = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      await check("email")
-        .isEmail()
-        .run(req);
-      await check("password")
-        .isLength({
-          min: 6
-        })
-        .run(req);
-      await sanitize("email")
-        .normalizeEmail({
-          gmail_remove_dots: false
-        })
-        .run(req);
-
-      const errors = validationResult(req);
-
-      if (!errors.isEmpty()) {
-        throw errors;
-      }
-
-      const { email, password } = req.body;
-      const user = await UserModel.findOne({
-        where: {
-          email: email.toLowerCase()
-        }
-      });
-
-      if (!user) {
-        throw new createError.NotFound(`Email ${email} not found.`);
-      }
-
-      if (!user.comparePassword(password)) {
-        throw new createError.BadRequest(`Invalid email or password.`);
-      }
-
-      const { secret, ...jwtOptions } = this.options.jwt;
-      jsonwebtoken.sign(
-        user.toJSON(),
-        secret as string,
-        jwtOptions,
-        (err, token) => {
-          if (err) {
-            return res.status(400).json(err);
-          }
-
-          res.json({
-            token
-          });
-        }
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  private postForgotPassword = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      await check("email")
-        .isEmail()
-        .run(req);
-      await sanitize("email")
-        .normalizeEmail({
-          gmail_remove_dots: false
-        })
-        .run(req);
-
-      const errors = validationResult(req);
-
-      if (!errors.isEmpty()) {
-        throw errors;
-      }
-
-      // createRandomToken
-      const token = await new Promise<string>((resolve, reject) => {
-        crypto.randomBytes(16, (err, buf) => {
-          if (err) {
-            return reject(err);
-          }
-          return resolve(buf.toString("hex"));
-        });
-      });
-
-      // setRandomToken
-      const user = await UserModel.findOne({
-        where: {
-          email: req.body.email
-        }
-      });
-      if (!user) {
-        throw new createError.NotFound(
-          `Account with that email address does not exist.`
-        );
-      }
-
-      const passwordResetExpires = new Date();
-      passwordResetExpires.setHours(passwordResetExpires.getHours() + 1);
-
-      await user.update({
-        passwordResetToken: token,
-        passwordResetExpires
-      });
-
-      await this.transporter.sendMail({
-        to: user.email,
-        from: this.options.mail.from,
-        subject: "Reset your password on Hackathon Starter",
-        text: template(this.options.mail.template.forgotPassword)(user as any)
-      });
-
-      res.json({
-        message: `An e-mail has been sent to ${user.email} with further instructions.`
-      });
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  private postResetPassword = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const user = await UserModel.findOne({
-        where: {
-          passwordResetToken: req.params.token,
-          passwordResetExpires: {
-            [Op.gt]: Date.now()
-          }
-        }
-      });
-
-      if (!user) {
-        throw new createError.BadRequest(
-          `Password reset token is invalid or has expired.`
-        );
-      }
-
-      await user.update({
-        password: req.body.password,
-        passwordResetToken: undefined,
-        passwordResetExpires: undefined
-      });
-
-      // sendResetPasswordEmail
-
-      await this.transporter.sendMail({
-        to: user.email,
-        from: this.options.mail.from,
-        subject: "Your password has been changed",
-        text: template(this.options.mail.template.resetPassword)(user as any)
-      });
-
-      res.json({
-        message: `Success! Your password has been changed.`
-      });
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  private postAccount = async (
-    req: Request & { user: UserModel },
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const user = await UserModel.findOne({
-        where: {
-          id: req.user.id
-        }
-      });
-
-      if (!user) {
-        throw new createError.NotFound(`User ID ${req.user.id} not found.`);
-      }
-
-      await user.update(req.body);
-
-      res.json(user.toJSON());
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  private deleteAccount = async (
-    req: Request & { user: UserModel },
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const user = await UserModel.findOne({
-        where: {
-          id: req.user.id
-        }
-      });
-
-      if (!user) {
-        throw new createError.NotFound(`User ID ${req.user.id} not found.`);
-      }
-
-      await user.destroy();
-
-      res.json({
-        message: `Your account has been deleted.`
-      });
-    } catch (error) {
-      next(error);
-    }
-  };
+  private initTwilio() {
+    this.twilio = twilio(
+      this.options.twilio.accountSid,
+      this.options.twilio.authToken,
+      this.options.twilio.opts
+    );
+  }
 }
 
 export default User;

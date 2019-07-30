@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import express from "express";
 import lusca from "lusca";
-import User from ".";
+import User from "./index";
 
 dotenv.config();
 

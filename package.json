@@ -61,7 +61,8 @@
     "pg-hstore": "^2.3.3",
     "sequelize": "^5.10.1",
     "sqlite3": "^4.0.9",
-    "tedious": "^6.2.0"
+    "tedious": "^6.2.0",
+    "twilio": "^3.33.2"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",

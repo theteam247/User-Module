@@ -1,0 +1,13 @@
+diff a/src/index.ts b/src/index.ts	(rejected hunks)
+@@ -18 +18 @@ import { UserOptions } from "./types/user";
+-const guard = permissions({})
++const guard = permissions({});
+@@ -27,4 +27 @@ class User {
+-    return [
+-      JWT(this.options.jwt),
+-      guard.check(required)
+-    ];
++    return [JWT(this.options.jwt), guard.check(required)];
+@@ -58 +55 @@ class User {
+-    this.transporter = nodemailer.createTransport(this.options.nodemailer)
++    this.transporter = nodemailer.createTransport(this.options.nodemailer);
