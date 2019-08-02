@@ -1,6 +1,6 @@
 import { Response, Request, NextFunction } from "express";
 import UserModel from "../modals/user";
-import User from "../user";
+import User from "../user-module";
 export declare const postSignupEmail: (req: Request & {
     config: User;
 }, res: Response, next: NextFunction) => Promise<void>;

@@ -61,7 +61,8 @@ class UserModule {
         const sequelize = this.options.sequelize instanceof sequelize_1.Sequelize
             ? this.options.sequelize
             : new sequelize_1.Sequelize(this.options.sequelize);
-        user_1.default.define({
+        this.model = user_1.default;
+        this.model.define({
             sequelize: sequelize,
             attributes: this.options.model
         }).sync();
@@ -111,4 +112,4 @@ class UserModule {
     }
 }
 exports.default = UserModule;
-//# sourceMappingURL=user.js.map
+//# sourceMappingURL=user-module.js.map

@@ -6,7 +6,7 @@ import { check, validationResult } from "express-validator";
 import { Op } from "sequelize";
 import UserModel from "../modals/user";
 import template from "../util/template";
-import User from "../user";
+import User from "../user-module";
 import { sign } from "../util/jwt";
 
 export const postSignupEmail = async (

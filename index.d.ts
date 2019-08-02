@@ -3,13 +3,15 @@ import { SignOptions } from "jsonwebtoken";
 import {
   Sequelize,
   Options as SequelizeOptions,
-  ModelAttributes
+  ModelAttributes,
+  Model
 } from "sequelize";
 import { TwilioClientOptions } from "twilio/lib/rest/Twilio";
 import { Router } from "express";
 import { Transporter } from "nodemailer";
 import { Twilio } from "twilio";
 import { RequestHandlerParams } from "express-serve-static-core";
+import UserModel from "./src/modals/user";
 
 export interface UserOptions {
   jwt: JWTOptions;
@@ -35,6 +37,7 @@ export interface UserOptions {
 
 export default interface User {
   options: UserOptions;
+  model: typeof UserModel;
   router: Router;
   transporter: Transporter;
   twilio: Twilio;

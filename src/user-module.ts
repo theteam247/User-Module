@@ -8,7 +8,7 @@ import compression from "compression";
 import bodyParser from "body-parser";
 import jwt from "express-jwt";
 import permissions from "express-jwt-permissions";
-import { Sequelize } from "sequelize";
+import { Sequelize, Model } from "sequelize";
 import UserModel from "./modals/user";
 import * as users from "./controllers/users";
 import verification from "./controllers/verification";
@@ -18,6 +18,7 @@ const guard = permissions({});
 
 class UserModule implements User {
   public options: UserOptions;
+  public model: typeof UserModel;
   public router: Router;
   public middleware(required: string | string[] | string[][] = "") {
     return [
@@ -68,10 +69,14 @@ class UserModule implements User {
         ? this.options.sequelize
         : new Sequelize(this.options.sequelize);
 
-    UserModel.define({
-      sequelize: sequelize,
-      attributes: this.options.model
-    }).sync();
+    this.model = UserModel;
+
+    this.model
+      .define({
+        sequelize: sequelize,
+        attributes: this.options.model
+      })
+      .sync();
   }
 
   private initRouter() {
