@@ -11,6 +11,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const lodash_1 = __importDefault(require("lodash"));
+const cors_1 = __importDefault(require("cors"));
 const dot_object_1 = __importDefault(require("dot-object"));
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const twilio_1 = __importDefault(require("twilio"));
@@ -72,7 +73,7 @@ class UserModule {
     initRouter() {
         this.router = express_1.default.Router();
         // middleware that is specific to this router
-        this.router.use(express_1.default.json());
+        this.router.use(cors_1.default());
         this.router.use(body_parser_1.default.json());
         this.router.use(body_parser_1.default.urlencoded({
             extended: true

@@ -1,4 +1,5 @@
 import _ from "lodash";
+import cors from "cors";
 import dot from "dot-object";
 import nodemailer, { Transporter } from "nodemailer";
 import twilio, { Twilio } from "twilio";
@@ -8,7 +9,7 @@ import compression from "compression";
 import bodyParser from "body-parser";
 import jwt from "express-jwt";
 import permissions from "express-jwt-permissions";
-import { Sequelize, Model } from "sequelize";
+import { Sequelize } from "sequelize";
 import UserModel from "./modals/user";
 import * as users from "./controllers/users";
 import verification from "./controllers/verification";
@@ -83,7 +84,7 @@ class UserModule implements User {
     this.router = express.Router();
 
     // middleware that is specific to this router
-    this.router.use(express.json());
+    this.router.use(cors());
     this.router.use(bodyParser.json());
     this.router.use(
       bodyParser.urlencoded({
