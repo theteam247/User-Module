@@ -12,7 +12,7 @@ import { Sequelize } from "sequelize";
 import UserModel from "./modals/user";
 import * as users from "./controllers/users";
 import verification from "./controllers/verification";
-import User, { UserOptions } from "./index.d";
+import User, { UserOptions } from "./types/user.d";
 
 const guard = permissions({});
 

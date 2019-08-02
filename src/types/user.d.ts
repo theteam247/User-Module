@@ -5,7 +5,6 @@ import {
   Options as SequelizeOptions,
   ModelAttributes
 } from "sequelize";
-import SMTPTransport from "nodemailer/lib/smtp-transport";
 import { TwilioClientOptions } from "twilio/lib/rest/Twilio";
 import { Router } from "express";
 import { Transporter } from "nodemailer";
@@ -41,6 +40,6 @@ export default interface User {
   twilio: Twilio;
 
   middleware:{
-    (required: string | string[] | string[][]): RequestHandlerParams
+    (required: string | string[] | string[][]): RequestHandlerParams;
   }
 }
