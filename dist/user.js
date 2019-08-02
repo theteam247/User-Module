@@ -21,9 +21,9 @@ const body_parser_1 = __importDefault(require("body-parser"));
 const express_jwt_1 = __importDefault(require("express-jwt"));
 const express_jwt_permissions_1 = __importDefault(require("express-jwt-permissions"));
 const sequelize_1 = require("sequelize");
-const user_1 = __importDefault(require("modals/user"));
-const users = __importStar(require("controllers/users"));
-const verification_1 = __importDefault(require("controllers/verification"));
+const user_1 = __importDefault(require("./modals/user"));
+const users = __importStar(require("./controllers/users"));
+const verification_1 = __importDefault(require("./controllers/verification"));
 const guard = express_jwt_permissions_1.default({});
 class UserModule {
     middleware(required = "") {

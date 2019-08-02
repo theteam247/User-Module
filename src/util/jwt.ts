@@ -1,5 +1,5 @@
 import JsonWebToken from "jsonwebtoken";
-import { UserOptions } from "../index.d";
+import { UserOptions } from "../../index.d";
 
 export const sign = (
   payload: string | object | Buffer,
