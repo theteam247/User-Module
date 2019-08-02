@@ -31,7 +31,8 @@ export const postSignupEmail = async (
 
     const user = await UserModel.create({
       email: req.body.email,
-      password: req.body.password
+      password: req.body.password,
+      name: req.body.name
     });
 
     const token = await sign(user.toJSON(), req.config.options);

@@ -33,7 +33,8 @@ exports.postSignupEmail = (req, res, next) => __awaiter(this, void 0, void 0, fu
         }
         const user = yield user_1.default.create({
             email: req.body.email,
-            password: req.body.password
+            password: req.body.password,
+            name: req.body.name
         });
         const token = yield jwt_1.sign(user.toJSON(), req.config.options);
         // TODO: send email
