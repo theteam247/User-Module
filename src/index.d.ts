@@ -7,6 +7,10 @@ import {
 } from "sequelize";
 import SMTPTransport from "nodemailer/lib/smtp-transport";
 import { TwilioClientOptions } from "twilio/lib/rest/Twilio";
+import { Router } from "express";
+import { Transporter } from "nodemailer";
+import { Twilio } from "twilio";
+import { RequestHandlerParams } from "express-serve-static-core";
 
 export interface UserOptions {
   jwt: JWTOptions;
@@ -30,4 +34,13 @@ export interface UserOptions {
   };
 }
 
-declare module "user";
+export default interface User {
+  options: UserOptions;
+  router: Router;
+  transporter: Transporter;
+  twilio: Twilio;
+
+  middleware:{
+    (required: string | string[] | string[][]): RequestHandlerParams
+  }
+}

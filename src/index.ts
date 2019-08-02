@@ -10,13 +10,13 @@ import jwt from "express-jwt";
 import permissions from "express-jwt-permissions";
 import { Sequelize } from "sequelize";
 import UserModel from "./modals/user";
-import { UserOptions } from "./types/user";
 import * as users from "./controllers/users";
 import verification from "./controllers/verification";
+import User, { UserOptions } from "./index.d";
 
 const guard = permissions({});
 
-class User {
+class UserModule implements User {
   public options: UserOptions;
   public router: Router;
   public middleware(required: string | string[] | string[][] = "") {
@@ -142,4 +142,4 @@ class User {
   }
 }
 
-export default User;
+export default UserModule;

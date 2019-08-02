@@ -25,7 +25,7 @@ const user_1 = __importDefault(require("./modals/user"));
 const users = __importStar(require("./controllers/users"));
 const verification_1 = __importDefault(require("./controllers/verification"));
 const guard = express_jwt_permissions_1.default({});
-class User {
+class UserModule {
     middleware(required = "") {
         return [
             express_jwt_1.default(this.options.jwt),
@@ -110,5 +110,5 @@ class User {
         this.twilio = twilio_1.default(this.options.twilio.accountSid, this.options.twilio.authToken, this.options.twilio.opts);
     }
 }
-exports.default = User;
+exports.default = UserModule;
 //# sourceMappingURL=index.js.map
