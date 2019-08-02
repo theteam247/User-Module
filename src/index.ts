@@ -73,6 +73,7 @@ class User {
       attributes: this.options.model
     }).sync();
   }
+
   private initRouter() {
     this.router = express.Router();
 
