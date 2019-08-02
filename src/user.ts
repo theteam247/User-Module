@@ -9,9 +9,9 @@ import bodyParser from "body-parser";
 import jwt from "express-jwt";
 import permissions from "express-jwt-permissions";
 import { Sequelize } from "sequelize";
-import UserModel from "modals/user";
-import * as users from "controllers/users";
-import verification from "controllers/verification";
+import UserModel from "./modals/user";
+import * as users from "./controllers/users";
+import verification from "./controllers/verification";
 import User, { UserOptions } from "./index.d";
 
 const guard = permissions({});

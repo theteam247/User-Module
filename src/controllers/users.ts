@@ -4,10 +4,10 @@ import { Response, Request, NextFunction } from "express";
 import createError from "http-errors";
 import { check, validationResult } from "express-validator";
 import { Op } from "sequelize";
-import UserModel from "modals/user";
-import template from "util/template";
-import User from "user";
-import { sign } from "util/jwt";
+import UserModel from "../modals/user";
+import template from "../util/template";
+import User from "../user";
+import { sign } from "../util/jwt";
 
 export const postSignupEmail = async (
   req: Request & { config: User },
