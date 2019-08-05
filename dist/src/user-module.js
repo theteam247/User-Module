@@ -24,6 +24,7 @@ const sequelize_1 = require("sequelize");
 const users = __importStar(require("./controllers/users"));
 const verification_1 = __importDefault(require("./controllers/verification"));
 const user_1 = __importDefault(require("./models/user"));
+const env_1 = __importDefault(require("../global/env"));
 const guard = express_jwt_permissions_1.default({});
 class Module {
     guard(options = {}) {
@@ -33,7 +34,7 @@ class Module {
         ];
     }
     constructor(options) {
-        this.options = lodash_1.default.merge({
+        this.options = lodash_1.default.merge(env_1.default, {
             jwt: {
                 getToken: (req) => {
                     if (req.headers.authorization &&

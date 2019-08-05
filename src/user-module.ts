@@ -14,7 +14,6 @@ import * as users from "./controllers/users";
 import verification from "./controllers/verification";
 import UserModule, { UserOptions, GuardOptions } from "../index.d";
 import User from "./models/user";
-import env from "../global/env";
 
 const guard = permissions({});
 
@@ -36,7 +35,6 @@ class Module implements UserModule {
 
   public constructor(options?: UserOptions) {
     this.options = _.merge(
-      env,
       {
         jwt: {
           getToken: (req: Request) => {
