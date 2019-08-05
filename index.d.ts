@@ -14,9 +14,9 @@ import { RequestHandlerParams } from "express-serve-static-core";
 import UserModel from "./src/modals/user";
 
 export interface UserOptions {
-  jwt: JWTOptions;
-  sign: SignOptions;
   sequelize: Sequelize | SequelizeOptions;
+  jwt: JWTOptions;
+  sign?: SignOptions;
   model?: ModelAttributes;
   nodemailer?: any;
   mail?: {

@@ -1,7 +1,7 @@
 import { Model, Sequelize, ModelAttributes, ModelOptions } from "sequelize";
 declare class User extends Model {
     password: string;
-    id: number;
+    id: string;
     email: string;
     phoneNumber: string;
     permissions: string[];
@@ -13,7 +13,7 @@ declare class User extends Model {
     passwordResetToken: string;
     passwordResetExpires: Date;
     toJSON(): {
-        id: number;
+        id: string;
         email: string;
         phoneNumber: string;
         permissions: string[];

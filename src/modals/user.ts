@@ -14,7 +14,7 @@ import {
 
 class User extends Model {
   public password!: string;
-  public id!: number;
+  public id!: string;
   public email!: string;
   public phoneNumber: string;
   public permissions: string[];
