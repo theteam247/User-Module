@@ -63,7 +63,8 @@ class Module {
             ? this.options.sequelize
             : new sequelize_1.Sequelize(this.options.sequelize);
         this.model = user_1.default;
-        this.model.define({
+        this.model
+            .define({
             sequelize: sequelize,
             attributes: this.options.model
         })
