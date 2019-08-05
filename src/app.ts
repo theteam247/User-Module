@@ -1,11 +1,11 @@
 import dotenv from "dotenv";
 import express from "express";
 import lusca from "lusca";
-import User from "./index";
+import UserModule from "./index";
 
 dotenv.config();
 
-const user = new User();
+const user = new UserModule();
 
 const app = express();
 app.set("port", process.env.PORT || 3000);

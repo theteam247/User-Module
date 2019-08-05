@@ -10,16 +10,16 @@ import bodyParser from "body-parser";
 import jwt from "express-jwt";
 import permissions from "express-jwt-permissions";
 import { Sequelize } from "sequelize";
-import UserModel from "./modals/user";
 import * as users from "./controllers/users";
 import verification from "./controllers/verification";
-import User, { UserOptions } from "../index.d";
+import UserModule, { UserOptions, UserModel } from "../index.d";
+import User from "./modals/user";
 
 const guard = permissions({});
 
-class UserModule implements User {
+class Module implements UserModule {
   public options: UserOptions;
-  public model: typeof UserModel;
+  public model: UserModel;
   public router: Router;
   public middleware(required: string | string[] | string[][] = "") {
     return [
@@ -70,7 +70,7 @@ class UserModule implements User {
         ? this.options.sequelize
         : new Sequelize(this.options.sequelize);
 
-    this.model = UserModel;
+    this.model = User;
 
     this.model
       .define({
@@ -92,7 +92,7 @@ class UserModule implements User {
       })
     );
     this.router.use(compression());
-    this.router.use((req: Request & { config: User }, res, next) => {
+    this.router.use((req: Request & { config: UserModule }, res, next) => {
       req.config = this;
       next();
     });
@@ -148,4 +148,4 @@ class UserModule implements User {
   }
 }
 
-export default UserModule;
+export default Module;

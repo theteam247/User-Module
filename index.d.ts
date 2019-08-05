@@ -11,7 +11,7 @@ import { Router } from "express";
 import { Transporter } from "nodemailer";
 import { Twilio } from "twilio";
 import { RequestHandlerParams } from "express-serve-static-core";
-import UserModel from "./src/modals/user";
+import user from "./src/modals/user";
 
 export interface UserOptions {
   sequelize: Sequelize | SequelizeOptions;
@@ -35,9 +35,11 @@ export interface UserOptions {
   };
 }
 
-export default interface User {
+export type UserModel = typeof user
+
+export default interface UserModule {
   options: UserOptions;
-  model: typeof UserModel;
+  model: UserModel;
   router: Router;
   transporter: Transporter;
   twilio: Twilio;

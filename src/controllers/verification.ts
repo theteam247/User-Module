@@ -1,10 +1,10 @@
 import { Response, Request, NextFunction } from "express";
 import { check, validationResult } from "express-validator";
-import User from "../index";
 import { sign } from "../util/jwt";
+import UserModule from "../../index.d";
 
 export default async (
-  req: Request & { config: User },
+  req: Request & { config: UserModule },
   res: Response,
   next: NextFunction
 ) => {

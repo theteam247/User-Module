@@ -1,11 +1,10 @@
 import { Transporter } from "nodemailer";
 import { Twilio } from "twilio";
 import express, { Router } from "express";
-import UserModel from "./modals/user";
-import User, { UserOptions } from "../index.d";
-declare class UserModule implements User {
+import UserModule, { UserOptions, UserModel } from "../index.d";
+declare class Module implements UserModule {
     options: UserOptions;
-    model: typeof UserModel;
+    model: UserModel;
     router: Router;
     middleware(required?: string | string[] | string[][]): express.Handler[];
     transporter: Transporter;
@@ -16,4 +15,4 @@ declare class UserModule implements User {
     private initTransporter;
     private initTwilio;
 }
-export default UserModule;
+export default Module;
