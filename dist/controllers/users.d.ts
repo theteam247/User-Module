@@ -24,10 +24,10 @@ export declare const postForgotPassword: (req: Request & {
 export declare const postResetPassword: (req: Request & {
     config: User;
 }, res: Response, next: NextFunction) => Promise<void>;
-export declare const postAccount: (req: Request & {
+export declare const postAccounts: (req: Request & {
     config: User;
     user: UserModel;
 }, res: Response, next: NextFunction) => Promise<void>;
-export declare const deleteAccount: (req: Request & {
+export declare const deleteAccounts: (req: Request & {
     user: UserModel;
 }, res: Response, next: NextFunction) => Promise<void>;

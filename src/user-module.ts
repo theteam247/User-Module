@@ -9,10 +9,11 @@ import compression from "compression";
 import bodyParser from "body-parser";
 import jwt from "express-jwt";
 import permissions from "express-jwt-permissions";
+import unless from "express-unless";
 import { Sequelize } from "sequelize";
 import * as users from "./controllers/users";
 import verification from "./controllers/verification";
-import UserModule, { UserOptions } from "../index.d";
+import UserModule, { UserOptions, GuardOptions } from "../index.d";
 import User from "./models/user";
 
 const guard = permissions({});
@@ -21,10 +22,12 @@ class Module implements UserModule {
   public options: UserOptions;
   public router: Router;
   public model: typeof User;
-  public middleware(required: string | string[] | string[][] = "") {
+  public guard(options: GuardOptions = {}) {
     return [
       jwt(this.options.jwt),
-      ...(required && required.length ? [guard.check(required)] : [])
+      (guard.check(options.required || "") as unless.RequestHandler).unless(
+        options.unless || {}
+      )
     ];
   }
 
@@ -98,12 +101,8 @@ class Module implements UserModule {
 
     if (this.options.twilio) {
       this.router.post("/verification", verification);
-      this.router.post(
-        "/signup/phone",
-        this.middleware(),
-        users.postSignupPhone
-      );
-      this.router.post("/login/2fa", this.middleware(), users.postLogin2fa);
+      this.router.post("/signup/phone", this.guard(), users.postSignupPhone);
+      this.router.post("/login/2fa", this.guard(), users.postLogin2fa);
     }
     this.router.post("/signup/email", users.postSignupEmail);
     this.router.post("/login/email", users.postLoginEmail);
@@ -112,8 +111,30 @@ class Module implements UserModule {
     this.router.post("/password/forgot", users.postForgotPassword);
     this.router.post("/password/reset", users.postResetPassword);
 
-    this.router.post("/account", this.middleware(), users.postAccount);
-    this.router.delete("/account", this.middleware(), users.deleteAccount);
+    this.router.post(
+      "/accounts/:id",
+      this.guard({
+        required: ["admin"],
+        unless: {
+          custom: (req: Request & { user: User }) => {
+            return req.params.id === req.user.id;
+          }
+        }
+      }),
+      users.postAccounts
+    );
+    this.router.delete(
+      "/accounts/:id",
+      this.guard({
+        required: ["admin"],
+        unless: {
+          custom: (req: Request & { user: User }) => {
+            return req.params.id === req.user.id;
+          }
+        }
+      }),
+      users.deleteAccounts
+    );
 
     this.router.use(
       (error: Error, req: Request, res: Response, next: NextFunction) => {

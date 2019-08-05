@@ -337,7 +337,7 @@ export const postResetPassword = async (
   }
 };
 
-export const postAccount = async (
+export const postAccounts = async (
   req: Request & { config: User; user: UserModel },
   res: Response,
   next: NextFunction
@@ -361,7 +361,7 @@ export const postAccount = async (
   }
 };
 
-export const deleteAccount = async (
+export const deleteAccounts = async (
   req: Request & { user: UserModel },
   res: Response,
   next: NextFunction

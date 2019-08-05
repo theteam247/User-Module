@@ -1,3 +1,4 @@
+import { Router, RequestHandler } from "express";
 import { Options as JWTOptions } from "express-jwt";
 import { SignOptions } from "jsonwebtoken";
 import {
@@ -8,10 +9,9 @@ import {
   ModelOptions
 } from "sequelize";
 import { TwilioClientOptions } from "twilio/lib/rest/Twilio";
-import { Router } from "express";
 import { Transporter } from "nodemailer";
 import { Twilio } from "twilio";
-import { RequestHandlerParams } from "express-serve-static-core";
+import unless from "express-unless";
 
 export interface UserOptions {
   sequelize: Sequelize | SequelizeOptions;
@@ -35,6 +35,11 @@ export interface UserOptions {
   };
 }
 
+export interface GuardOptions {
+  required?: string | string[] | string[][],
+  unless?: unless.Options
+}
+
 export default interface UserModule {
   options: UserOptions;
   model: typeof Model;
@@ -42,7 +47,7 @@ export default interface UserModule {
   transporter: Transporter;
   twilio: Twilio;
 
-  middleware:{
-    (required: string | string[] | string[][]): RequestHandlerParams;
+  guard:{
+    (options?: GuardOptions): RequestHandler[];
   }
 }

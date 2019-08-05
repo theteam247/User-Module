@@ -27,10 +27,10 @@ const verification_1 = __importDefault(require("./controllers/verification"));
 const user_1 = __importDefault(require("./models/user"));
 const guard = express_jwt_permissions_1.default({});
 class Module {
-    middleware(required = "") {
+    guard(options = {}) {
         return [
             express_jwt_1.default(this.options.jwt),
-            ...(required && required.length ? [guard.check(required)] : [])
+            guard.check(options.required || "").unless(options.unless || {})
         ];
     }
     constructor(options) {
@@ -85,16 +85,30 @@ class Module {
         });
         if (this.options.twilio) {
             this.router.post("/verification", verification_1.default);
-            this.router.post("/signup/phone", this.middleware(), users.postSignupPhone);
-            this.router.post("/login/2fa", this.middleware(), users.postLogin2fa);
+            this.router.post("/signup/phone", this.guard(), users.postSignupPhone);
+            this.router.post("/login/2fa", this.guard(), users.postLogin2fa);
         }
         this.router.post("/signup/email", users.postSignupEmail);
         this.router.post("/login/email", users.postLoginEmail);
         this.router.post("/login/phone", users.postLoginPhone);
         this.router.post("/password/forgot", users.postForgotPassword);
         this.router.post("/password/reset", users.postResetPassword);
-        this.router.post("/account", this.middleware(), users.postAccount);
-        this.router.delete("/account", this.middleware(), users.deleteAccount);
+        this.router.post("/accounts/:id", this.guard({
+            required: ["admin"],
+            unless: {
+                custom: (req) => {
+                    return req.params.id === req.user.id;
+                }
+            }
+        }), users.postAccounts);
+        this.router.delete("/accounts/:id", this.guard({
+            required: ["admin"],
+            unless: {
+                custom: (req) => {
+                    return req.params.id === req.user.id;
+                }
+            }
+        }), users.deleteAccounts);
         this.router.use((error, req, res, next) => {
             if (error instanceof http_errors_1.default.HttpError) {
                 return res.status(error.status).json(error);

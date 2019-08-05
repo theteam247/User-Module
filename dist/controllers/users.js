@@ -260,7 +260,7 @@ exports.postResetPassword = (req, res, next) => __awaiter(this, void 0, void 0, 
         next(error);
     }
 });
-exports.postAccount = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+exports.postAccounts = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
     try {
         const user = yield user_1.default.findOne({
             where: {
@@ -277,7 +277,7 @@ exports.postAccount = (req, res, next) => __awaiter(this, void 0, void 0, functi
         next(error);
     }
 });
-exports.deleteAccount = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+exports.deleteAccounts = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
     try {
         const user = yield user_1.default.findOne({
             where: {
