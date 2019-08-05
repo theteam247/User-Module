@@ -4,7 +4,7 @@ import { Response, Request, NextFunction } from "express";
 import createError from "http-errors";
 import { check, validationResult } from "express-validator";
 import { Op } from "sequelize";
-import UserModel from "../modals/user";
+import UserModel from "../models/user";
 import template from "../util/template";
 import User from "../user-module";
 import { sign } from "../util/jwt";

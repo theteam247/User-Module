@@ -2,6 +2,7 @@
   "name": "user-module",
   "version": "1.0.0",
   "description": "",
+  "main": "dist/index.js",
   "scripts": {
     "start": "npm run serve",
     "build": "npm-run-all build-ts tslint",

@@ -24,7 +24,7 @@ const express_jwt_permissions_1 = __importDefault(require("express-jwt-permissio
 const sequelize_1 = require("sequelize");
 const users = __importStar(require("./controllers/users"));
 const verification_1 = __importDefault(require("./controllers/verification"));
-const user_1 = __importDefault(require("./modals/user"));
+const user_1 = __importDefault(require("./models/user"));
 const guard = express_jwt_permissions_1.default({});
 class Module {
     middleware(required = "") {
@@ -63,8 +63,7 @@ class Module {
             ? this.options.sequelize
             : new sequelize_1.Sequelize(this.options.sequelize);
         this.model = user_1.default;
-        this.model
-            .define({
+        this.model.define({
             sequelize: sequelize,
             attributes: this.options.model
         })

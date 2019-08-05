@@ -15,7 +15,7 @@ const crypto_1 = __importDefault(require("crypto"));
 const http_errors_1 = __importDefault(require("http-errors"));
 const express_validator_1 = require("express-validator");
 const sequelize_1 = require("sequelize");
-const user_1 = __importDefault(require("../modals/user"));
+const user_1 = __importDefault(require("../models/user"));
 const template_1 = __importDefault(require("../util/template"));
 const jwt_1 = require("../util/jwt");
 exports.postSignupEmail = (req, res, next) => __awaiter(this, void 0, void 0, function* () {

@@ -3,19 +3,19 @@ import {
   STRING,
   TEXT,
   DATE,
-  Model,
   Sequelize,
   ModelAttributes,
   ModelOptions,
   UUID,
   UUIDV1,
-  UUIDV4
+  UUIDV4,
+  Model
 } from "sequelize";
 
 class User extends Model {
-  public password!: string;
-  public id!: string;
-  public email!: string;
+  public password: string;
+  public id: string;
+  public email: string;
   public phoneNumber: string;
   public permissions: string[];
   public name: string;

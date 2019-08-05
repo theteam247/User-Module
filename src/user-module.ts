@@ -12,15 +12,15 @@ import permissions from "express-jwt-permissions";
 import { Sequelize } from "sequelize";
 import * as users from "./controllers/users";
 import verification from "./controllers/verification";
-import UserModule, { UserOptions, UserModel } from "../index.d";
-import User from "./modals/user";
+import UserModule, { UserOptions } from "../index.d";
+import User from "./models/user";
 
 const guard = permissions({});
 
 class Module implements UserModule {
   public options: UserOptions;
-  public model: UserModel;
   public router: Router;
+  public model: typeof User;
   public middleware(required: string | string[] | string[][] = "") {
     return [
       jwt(this.options.jwt),
@@ -71,7 +71,6 @@ class Module implements UserModule {
         : new Sequelize(this.options.sequelize);
 
     this.model = User;
-
     this.model
       .define({
         sequelize: sequelize,
