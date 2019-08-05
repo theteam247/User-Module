@@ -278,9 +278,10 @@ export const postForgotPassword = async (
       to: user.email,
       from: req.module.options.mail.from,
       subject: "Reset your password on Hackathon Starter",
-      text: template(req.module.options.mail.template.forgotPassword)(
-        user as any
-      )
+      text: template(req.module.options.mail.template.forgotPassword)({
+        req,
+        user
+      })
     });
 
     res.json({
@@ -324,9 +325,10 @@ export const postResetPassword = async (
       to: user.email,
       from: req.module.options.mail.from,
       subject: "Your password has been changed",
-      text: template(req.module.options.mail.template.resetPassword)(
-        user as any
-      )
+      text: template(req.module.options.mail.template.resetPassword)({
+        req,
+        user
+      })
     });
 
     res.json({

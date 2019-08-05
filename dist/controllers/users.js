@@ -217,7 +217,10 @@ exports.postForgotPassword = (req, res, next) => __awaiter(this, void 0, void 0,
             to: user.email,
             from: req.module.options.mail.from,
             subject: "Reset your password on Hackathon Starter",
-            text: template_1.default(req.module.options.mail.template.forgotPassword)(user)
+            text: template_1.default(req.module.options.mail.template.forgotPassword)({
+                req,
+                user
+            })
         });
         res.json({
             message: `An e-mail has been sent to ${user.email} with further instructions.`
@@ -250,7 +253,10 @@ exports.postResetPassword = (req, res, next) => __awaiter(this, void 0, void 0, 
             to: user.email,
             from: req.module.options.mail.from,
             subject: "Your password has been changed",
-            text: template_1.default(req.module.options.mail.template.resetPassword)(user)
+            text: template_1.default(req.module.options.mail.template.resetPassword)({
+                req,
+                user
+            })
         });
         res.json({
             message: `Success! Your password has been changed.`
