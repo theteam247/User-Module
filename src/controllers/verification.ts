@@ -4,7 +4,7 @@ import { sign } from "../util/jwt";
 import UserModule from "../../index.d";
 
 export default async (
-  req: Request & { config: UserModule },
+  req: Request & { module: UserModule },
   res: Response,
   next: NextFunction
 ) => {
@@ -23,8 +23,8 @@ export default async (
       throw errors;
     }
 
-    await req.config.twilio.verify
-      .services(req.config.options.twilio.verifySid)
+    await req.module.twilio.verify
+      .services(req.module.options.twilio.verifySid)
       .verifications.create({
         to: req.body.to,
         channel: req.body.channel || "sms"
@@ -34,7 +34,7 @@ export default async (
       {
         phoneNumber: req.body.to
       },
-      req.config.options
+      req.module.options
     );
 
     res.cookie("token", token).json({

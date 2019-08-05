@@ -94,8 +94,8 @@ class Module implements UserModule {
       })
     );
     this.router.use(compression());
-    this.router.use((req: Request & { config: UserModule }, res, next) => {
-      req.config = this;
+    this.router.use((req: Request & { module: UserModule }, res, next) => {
+      req.module = this;
       next();
     });
 

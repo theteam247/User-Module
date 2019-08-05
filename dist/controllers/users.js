@@ -15,9 +15,9 @@ const crypto_1 = __importDefault(require("crypto"));
 const http_errors_1 = __importDefault(require("http-errors"));
 const express_validator_1 = require("express-validator");
 const sequelize_1 = require("sequelize");
-const user_1 = __importDefault(require("../models/user"));
 const template_1 = __importDefault(require("../util/template"));
 const jwt_1 = require("../util/jwt");
+const user_1 = __importDefault(require("../models/user"));
 exports.postSignupEmail = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
     try {
         yield express_validator_1.check("email", "Email is not valid")
@@ -36,7 +36,7 @@ exports.postSignupEmail = (req, res, next) => __awaiter(this, void 0, void 0, fu
             password: req.body.password,
             name: req.body.name
         });
-        const token = yield jwt_1.sign(user.toJSON(), req.config.options);
+        const token = yield jwt_1.sign(user.toJSON(), req.module.options);
         // TODO: send email
         res.cookie("token", token).json({
             token
@@ -59,14 +59,14 @@ exports.postSignupPhone = (req, res, next) => __awaiter(this, void 0, void 0, fu
         if (!errors.isEmpty()) {
             throw errors;
         }
-        yield req.config.twilio.verify
-            .services(req.config.options.twilio.verifySid)
+        yield req.module.twilio.verify
+            .services(req.module.options.twilio.verifySid)
             .verificationChecks.create({
             to: req.user.phoneNumber,
             code: req.body.code
         });
         const user = yield user_1.default.create(Object.assign({}, req.body, { phoneNumber: req.user.phoneNumber }));
-        const token = yield jwt_1.sign(user.toJSON(), req.config.options);
+        const token = yield jwt_1.sign(user.toJSON(), req.module.options);
         res.cookie("token", token).json({
             token
         });
@@ -102,7 +102,7 @@ exports.postLoginEmail = (req, res, next) => __awaiter(this, void 0, void 0, fun
         if (!user.comparePassword(password)) {
             throw new http_errors_1.default.BadRequest(`Invalid email or password.`);
         }
-        const token = yield jwt_1.sign(user.toJSON(), req.config.options);
+        const token = yield jwt_1.sign(user.toJSON(), req.module.options);
         res.cookie("token", token).json({
             token
         });
@@ -137,7 +137,7 @@ exports.postLoginPhone = (req, res, next) => __awaiter(this, void 0, void 0, fun
         if (!user.comparePassword(password)) {
             throw new http_errors_1.default.BadRequest(`Invalid phone number or password.`);
         }
-        const token = yield jwt_1.sign(user.toJSON(), req.config.options);
+        const token = yield jwt_1.sign(user.toJSON(), req.module.options);
         res.cookie("token", token).json({
             token
         });
@@ -155,8 +155,8 @@ exports.postLogin2fa = (req, res, next) => __awaiter(this, void 0, void 0, funct
         if (!errors.isEmpty()) {
             throw errors;
         }
-        yield req.config.twilio.verify
-            .services(req.config.options.twilio.verifySid)
+        yield req.module.twilio.verify
+            .services(req.module.options.twilio.verifySid)
             .verificationChecks.create({
             to: req.user.phoneNumber,
             code: req.body.code
@@ -170,7 +170,7 @@ exports.postLogin2fa = (req, res, next) => __awaiter(this, void 0, void 0, funct
         if (!user) {
             throw new http_errors_1.default.NotFound(`Phone number ${phoneNumber} not found.`);
         }
-        const token = yield jwt_1.sign(user.toJSON(), req.config.options);
+        const token = yield jwt_1.sign(user.toJSON(), req.module.options);
         res.cookie("token", token).json({
             token
         });
@@ -213,11 +213,11 @@ exports.postForgotPassword = (req, res, next) => __awaiter(this, void 0, void 0,
             passwordResetToken: token,
             passwordResetExpires
         });
-        yield req.config.transporter.sendMail({
+        yield req.module.transporter.sendMail({
             to: user.email,
-            from: req.config.options.mail.from,
+            from: req.module.options.mail.from,
             subject: "Reset your password on Hackathon Starter",
-            text: template_1.default(req.config.options.mail.template.forgotPassword)(user)
+            text: template_1.default(req.module.options.mail.template.forgotPassword)(user)
         });
         res.json({
             message: `An e-mail has been sent to ${user.email} with further instructions.`
@@ -246,11 +246,11 @@ exports.postResetPassword = (req, res, next) => __awaiter(this, void 0, void 0, 
             passwordResetExpires: undefined
         });
         // sendResetPasswordEmail
-        yield req.config.transporter.sendMail({
+        yield req.module.transporter.sendMail({
             to: user.email,
-            from: req.config.options.mail.from,
+            from: req.module.options.mail.from,
             subject: "Your password has been changed",
-            text: template_1.default(req.config.options.mail.template.resetPassword)(user)
+            text: template_1.default(req.module.options.mail.template.resetPassword)(user)
         });
         res.json({
             message: `Success! Your password has been changed.`
@@ -264,11 +264,11 @@ exports.postAccounts = (req, res, next) => __awaiter(this, void 0, void 0, funct
     try {
         const user = yield user_1.default.findOne({
             where: {
-                id: req.user.id
+                id: req.params.id
             }
         });
         if (!user) {
-            throw new http_errors_1.default.NotFound(`User ID ${req.user.id} not found.`);
+            throw new http_errors_1.default.NotFound(`User ID ${req.params.id} not found.`);
         }
         yield user.update(req.body);
         res.json(user.toJSON());
@@ -281,11 +281,11 @@ exports.deleteAccounts = (req, res, next) => __awaiter(this, void 0, void 0, fun
     try {
         const user = yield user_1.default.findOne({
             where: {
-                id: req.user.id
+                id: req.params.id
             }
         });
         if (!user) {
-            throw new http_errors_1.default.NotFound(`User ID ${req.user.id} not found.`);
+            throw new http_errors_1.default.NotFound(`User ID ${req.params.id} not found.`);
         }
         yield user.destroy();
         res.json({

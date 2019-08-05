@@ -23,15 +23,15 @@ exports.default = (req, res, next) => __awaiter(this, void 0, void 0, function* 
         if (!errors.isEmpty()) {
             throw errors;
         }
-        yield req.config.twilio.verify
-            .services(req.config.options.twilio.verifySid)
+        yield req.module.twilio.verify
+            .services(req.module.options.twilio.verifySid)
             .verifications.create({
             to: req.body.to,
             channel: req.body.channel || "sms"
         });
         const token = yield jwt_1.sign({
             phoneNumber: req.body.to
-        }, req.config.options);
+        }, req.module.options);
         res.cookie("token", token).json({
             token
         });

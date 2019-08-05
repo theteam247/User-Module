@@ -80,7 +80,7 @@ class Module {
         }));
         this.router.use(compression_1.default());
         this.router.use((req, res, next) => {
-            req.config = this;
+            req.module = this;
             next();
         });
         if (this.options.twilio) {

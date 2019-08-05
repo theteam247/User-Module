@@ -4,13 +4,13 @@ import { Response, Request, NextFunction } from "express";
 import createError from "http-errors";
 import { check, validationResult } from "express-validator";
 import { Op } from "sequelize";
-import UserModel from "../models/user";
 import template from "../util/template";
-import User from "../user-module";
 import { sign } from "../util/jwt";
+import UserModel from "../models/user";
+import UserModule from "../user-module";
 
 export const postSignupEmail = async (
-  req: Request & { config: User },
+  req: Request & { module: UserModule },
   res: Response,
   next: NextFunction
 ) => {
@@ -35,7 +35,7 @@ export const postSignupEmail = async (
       name: req.body.name
     });
 
-    const token = await sign(user.toJSON(), req.config.options);
+    const token = await sign(user.toJSON(), req.module.options);
 
     // TODO: send email
 
@@ -48,7 +48,7 @@ export const postSignupEmail = async (
 };
 
 export const postSignupPhone = async (
-  req: Request & { config: User; user: UserModel },
+  req: Request & { module: UserModule; user: UserModel },
   res: Response,
   next: NextFunction
 ) => {
@@ -68,8 +68,8 @@ export const postSignupPhone = async (
       throw errors;
     }
 
-    await req.config.twilio.verify
-      .services(req.config.options.twilio.verifySid)
+    await req.module.twilio.verify
+      .services(req.module.options.twilio.verifySid)
       .verificationChecks.create({
         to: req.user.phoneNumber,
         code: req.body.code
@@ -80,7 +80,7 @@ export const postSignupPhone = async (
       phoneNumber: req.user.phoneNumber
     });
 
-    const token = await sign(user.toJSON(), req.config.options);
+    const token = await sign(user.toJSON(), req.module.options);
 
     res.cookie("token", token).json({
       token
@@ -91,7 +91,7 @@ export const postSignupPhone = async (
 };
 
 export const postLoginEmail = async (
-  req: Request & { config: User },
+  req: Request & { module: UserModule },
   res: Response,
   next: NextFunction
 ) => {
@@ -127,7 +127,7 @@ export const postLoginEmail = async (
       throw new createError.BadRequest(`Invalid email or password.`);
     }
 
-    const token = await sign(user.toJSON(), req.config.options);
+    const token = await sign(user.toJSON(), req.module.options);
 
     res.cookie("token", token).json({
       token
@@ -138,7 +138,7 @@ export const postLoginEmail = async (
 };
 
 export const postLoginPhone = async (
-  req: Request & { config: User },
+  req: Request & { module: UserModule },
   res: Response,
   next: NextFunction
 ) => {
@@ -173,7 +173,7 @@ export const postLoginPhone = async (
       throw new createError.BadRequest(`Invalid phone number or password.`);
     }
 
-    const token = await sign(user.toJSON(), req.config.options);
+    const token = await sign(user.toJSON(), req.module.options);
 
     res.cookie("token", token).json({
       token
@@ -184,7 +184,7 @@ export const postLoginPhone = async (
 };
 
 export const postLogin2fa = async (
-  req: Request & { config: User; user: UserModel },
+  req: Request & { module: UserModule; user: UserModel },
   res: Response,
   next: NextFunction
 ) => {
@@ -199,8 +199,8 @@ export const postLogin2fa = async (
       throw errors;
     }
 
-    await req.config.twilio.verify
-      .services(req.config.options.twilio.verifySid)
+    await req.module.twilio.verify
+      .services(req.module.options.twilio.verifySid)
       .verificationChecks.create({
         to: req.user.phoneNumber,
         code: req.body.code
@@ -217,7 +217,7 @@ export const postLogin2fa = async (
       throw new createError.NotFound(`Phone number ${phoneNumber} not found.`);
     }
 
-    const token = await sign(user.toJSON(), req.config.options);
+    const token = await sign(user.toJSON(), req.module.options);
 
     res.cookie("token", token).json({
       token
@@ -228,7 +228,7 @@ export const postLogin2fa = async (
 };
 
 export const postForgotPassword = async (
-  req: Request & { config: User },
+  req: Request & { module: UserModule },
   res: Response,
   next: NextFunction
 ) => {
@@ -274,11 +274,11 @@ export const postForgotPassword = async (
       passwordResetExpires
     });
 
-    await req.config.transporter.sendMail({
+    await req.module.transporter.sendMail({
       to: user.email,
-      from: req.config.options.mail.from,
+      from: req.module.options.mail.from,
       subject: "Reset your password on Hackathon Starter",
-      text: template(req.config.options.mail.template.forgotPassword)(
+      text: template(req.module.options.mail.template.forgotPassword)(
         user as any
       )
     });
@@ -292,7 +292,7 @@ export const postForgotPassword = async (
 };
 
 export const postResetPassword = async (
-  req: Request & { config: User },
+  req: Request & { module: UserModule },
   res: Response,
   next: NextFunction
 ) => {
@@ -320,11 +320,11 @@ export const postResetPassword = async (
 
     // sendResetPasswordEmail
 
-    await req.config.transporter.sendMail({
+    await req.module.transporter.sendMail({
       to: user.email,
-      from: req.config.options.mail.from,
+      from: req.module.options.mail.from,
       subject: "Your password has been changed",
-      text: template(req.config.options.mail.template.resetPassword)(
+      text: template(req.module.options.mail.template.resetPassword)(
         user as any
       )
     });
@@ -338,19 +338,19 @@ export const postResetPassword = async (
 };
 
 export const postAccounts = async (
-  req: Request & { config: User; user: UserModel },
+  req: Request & { module: UserModule },
   res: Response,
   next: NextFunction
 ) => {
   try {
     const user = await UserModel.findOne({
       where: {
-        id: req.user.id
+        id: req.params.id
       }
     });
 
     if (!user) {
-      throw new createError.NotFound(`User ID ${req.user.id} not found.`);
+      throw new createError.NotFound(`User ID ${req.params.id} not found.`);
     }
 
     await user.update(req.body);
@@ -362,19 +362,19 @@ export const postAccounts = async (
 };
 
 export const deleteAccounts = async (
-  req: Request & { user: UserModel },
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const user = await UserModel.findOne({
       where: {
-        id: req.user.id
+        id: req.params.id
       }
     });
 
     if (!user) {
-      throw new createError.NotFound(`User ID ${req.user.id} not found.`);
+      throw new createError.NotFound(`User ID ${req.params.id} not found.`);
     }
 
     await user.destroy();
