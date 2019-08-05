@@ -44,7 +44,10 @@ class User extends sequelize_1.Model {
             }, email: {
                 type: sequelize_1.STRING,
                 allowNull: true,
-                unique: true
+                unique: true,
+                validate: {
+                    isEmail: true
+                }
             }, phoneNumber: {
                 type: sequelize_1.STRING,
                 allowNull: true,
@@ -52,9 +55,12 @@ class User extends sequelize_1.Model {
             }, 
             // hash
             password: {
-                type: sequelize_1.TEXT,
+                type: sequelize_1.STRING,
                 allowNull: false,
-                defaultValue: sequelize_1.UUIDV1
+                defaultValue: sequelize_1.UUIDV1,
+                validate: {
+                    len: [6, Number.MAX_SAFE_INTEGER]
+                }
             }, permissions: {
                 type: sequelize_1.STRING,
                 allowNull: false,

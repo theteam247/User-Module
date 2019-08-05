@@ -13,7 +13,7 @@ const jwt_1 = require("../util/jwt");
 exports.default = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
     try {
         yield express_validator_1.check("to", "Phone Number is required")
-            .exists()
+            .isMobilePhone("any")
             .run(req);
         yield express_validator_1.check("channel")
             .custom(value => value === "sms" || value === "call")

@@ -20,17 +20,6 @@ const jwt_1 = require("../util/jwt");
 const user_1 = __importDefault(require("../models/user"));
 exports.postSignupEmail = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
     try {
-        yield express_validator_1.check("email", "Email is not valid")
-            .normalizeEmail({ gmail_remove_dots: false })
-            .isEmail()
-            .run(req);
-        yield express_validator_1.check("password", "Password must be at least 4 characters long")
-            .isLength({ min: 6 })
-            .run(req);
-        const errors = express_validator_1.validationResult(req);
-        if (!errors.isEmpty()) {
-            throw errors;
-        }
         const user = yield user_1.default.create({
             email: req.body.email,
             password: req.body.password,
@@ -51,14 +40,7 @@ exports.postSignupPhone = (req, res, next) => __awaiter(this, void 0, void 0, fu
         yield express_validator_1.check("code", "Code is not valid")
             .exists()
             .run(req);
-        yield express_validator_1.check("password", "Password must be at least 4 characters long")
-            .isLength({ min: 6 })
-            .optional()
-            .run(req);
-        const errors = express_validator_1.validationResult(req);
-        if (!errors.isEmpty()) {
-            throw errors;
-        }
+        express_validator_1.validationResult(req).throw();
         yield req.module.twilio.verify
             .services(req.module.options.twilio.verifySid)
             .verificationChecks.create({
@@ -77,19 +59,6 @@ exports.postSignupPhone = (req, res, next) => __awaiter(this, void 0, void 0, fu
 });
 exports.postLoginEmail = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
     try {
-        yield express_validator_1.check("email")
-            .normalizeEmail({ gmail_remove_dots: false })
-            .isEmail()
-            .run(req);
-        yield express_validator_1.check("password")
-            .isLength({
-            min: 6
-        })
-            .run(req);
-        const errors = express_validator_1.validationResult(req);
-        if (!errors.isEmpty()) {
-            throw errors;
-        }
         const { email, password } = req.body;
         const user = yield user_1.default.findOne({
             where: {
@@ -114,17 +83,9 @@ exports.postLoginEmail = (req, res, next) => __awaiter(this, void 0, void 0, fun
 exports.postLoginPhone = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
     try {
         yield express_validator_1.check("phoneNumber")
-            .exists()
+            .isMobilePhone("any")
             .run(req);
-        yield express_validator_1.check("password")
-            .isLength({
-            min: 6
-        })
-            .run(req);
-        const errors = express_validator_1.validationResult(req);
-        if (!errors.isEmpty()) {
-            throw errors;
-        }
+        express_validator_1.validationResult(req).throw();
         const { phoneNumber, password } = req.body;
         const user = yield user_1.default.findOne({
             where: {
@@ -151,6 +112,7 @@ exports.postLogin2fa = (req, res, next) => __awaiter(this, void 0, void 0, funct
         yield express_validator_1.check("code", "Code is not valid")
             .exists()
             .run(req);
+        express_validator_1.validationResult(req).throw();
         const errors = express_validator_1.validationResult(req);
         if (!errors.isEmpty()) {
             throw errors;
@@ -181,14 +143,6 @@ exports.postLogin2fa = (req, res, next) => __awaiter(this, void 0, void 0, funct
 });
 exports.postForgotPassword = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
     try {
-        yield express_validator_1.check("email")
-            .normalizeEmail({ gmail_remove_dots: false })
-            .isEmail()
-            .run(req);
-        const errors = express_validator_1.validationResult(req);
-        if (!errors.isEmpty()) {
-            throw errors;
-        }
         // createRandomToken
         const token = yield new Promise((resolve, reject) => {
             crypto_1.default.randomBytes(16, (err, buf) => {

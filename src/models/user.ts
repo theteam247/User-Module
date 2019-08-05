@@ -1,7 +1,6 @@
 import bcryptjs from "bcryptjs";
 import {
   STRING,
-  TEXT,
   DATE,
   Sequelize,
   ModelAttributes,
@@ -17,7 +16,7 @@ class User extends Model {
   public id: string;
   public email: string;
   public phoneNumber: string;
-  public permissions: string[];
+  public permissions: string;
   public name: string;
   public gender: string;
   public picture: string;
@@ -62,7 +61,10 @@ class User extends Model {
         email: {
           type: STRING,
           allowNull: true,
-          unique: true
+          unique: true,
+          validate: {
+            isEmail: true
+          }
         },
         phoneNumber: {
           type: STRING,
@@ -71,9 +73,12 @@ class User extends Model {
         },
         // hash
         password: {
-          type: TEXT,
+          type: STRING,
           allowNull: false,
-          defaultValue: UUIDV1
+          defaultValue: UUIDV1,
+          validate: {
+            len: [6, Number.MAX_SAFE_INTEGER]
+          }
         },
         permissions: {
           type: STRING,

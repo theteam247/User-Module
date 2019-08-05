@@ -10,7 +10,7 @@ export default async (
 ) => {
   try {
     await check("to", "Phone Number is required")
-      .exists()
+      .isMobilePhone("any")
       .run(req);
     await check("channel")
       .custom(value => value === "sms" || value === "call")

@@ -15,20 +15,6 @@ export const postSignupEmail = async (
   next: NextFunction
 ) => {
   try {
-    await check("email", "Email is not valid")
-      .normalizeEmail({ gmail_remove_dots: false })
-      .isEmail()
-      .run(req);
-    await check("password", "Password must be at least 4 characters long")
-      .isLength({ min: 6 })
-      .run(req);
-
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-      throw errors;
-    }
-
     const user = await UserModel.create({
       email: req.body.email,
       password: req.body.password,
@@ -56,17 +42,7 @@ export const postSignupPhone = async (
     await check("code", "Code is not valid")
       .exists()
       .run(req);
-
-    await check("password", "Password must be at least 4 characters long")
-      .isLength({ min: 6 })
-      .optional()
-      .run(req);
-
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-      throw errors;
-    }
+    validationResult(req).throw();
 
     await req.module.twilio.verify
       .services(req.module.options.twilio.verifySid)
@@ -96,22 +72,6 @@ export const postLoginEmail = async (
   next: NextFunction
 ) => {
   try {
-    await check("email")
-      .normalizeEmail({ gmail_remove_dots: false })
-      .isEmail()
-      .run(req);
-    await check("password")
-      .isLength({
-        min: 6
-      })
-      .run(req);
-
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-      throw errors;
-    }
-
     const { email, password } = req.body;
     const user = await UserModel.findOne({
       where: {
@@ -144,19 +104,9 @@ export const postLoginPhone = async (
 ) => {
   try {
     await check("phoneNumber")
-      .exists()
+      .isMobilePhone("any")
       .run(req);
-    await check("password")
-      .isLength({
-        min: 6
-      })
-      .run(req);
-
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-      throw errors;
-    }
+    validationResult(req).throw();
 
     const { phoneNumber, password } = req.body;
     const user = await UserModel.findOne({
@@ -192,6 +142,7 @@ export const postLogin2fa = async (
     await check("code", "Code is not valid")
       .exists()
       .run(req);
+    validationResult(req).throw();
 
     const errors = validationResult(req);
 
@@ -233,17 +184,6 @@ export const postForgotPassword = async (
   next: NextFunction
 ) => {
   try {
-    await check("email")
-      .normalizeEmail({ gmail_remove_dots: false })
-      .isEmail()
-      .run(req);
-
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-      throw errors;
-    }
-
     // createRandomToken
     const token = await new Promise<string>((resolve, reject) => {
       crypto.randomBytes(16, (err, buf) => {

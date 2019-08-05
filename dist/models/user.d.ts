@@ -4,7 +4,7 @@ declare class User extends Model {
     id: string;
     email: string;
     phoneNumber: string;
-    permissions: string[];
+    permissions: string;
     name: string;
     gender: string;
     picture: string;
@@ -16,7 +16,7 @@ declare class User extends Model {
         id: string;
         email: string;
         phoneNumber: string;
-        permissions: string[];
+        permissions: string;
         name: string;
         gender: string;
         picture: string;
