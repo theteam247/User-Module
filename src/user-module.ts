@@ -1,6 +1,5 @@
 import _ from "lodash";
 import cors from "cors";
-import dot from "dot-object";
 import nodemailer, { Transporter } from "nodemailer";
 import twilio, { Twilio } from "twilio";
 import express, { Response, Request, NextFunction, Router } from "express";
@@ -15,6 +14,7 @@ import * as users from "./controllers/users";
 import verification from "./controllers/verification";
 import UserModule, { UserOptions, GuardOptions } from "../index.d";
 import User from "./models/user";
+import env from "../global/env";
 
 const guard = permissions({});
 
@@ -35,10 +35,6 @@ class Module implements UserModule {
   public twilio: Twilio;
 
   public constructor(options?: UserOptions) {
-    const env = {
-      ...process.env
-    };
-    dot.object(env);
     this.options = _.merge(
       env,
       {
