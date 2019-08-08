@@ -64,7 +64,7 @@ class User extends sequelize_1.Model {
             }, permissions: {
                 type: sequelize_1.STRING,
                 allowNull: false,
-                defaultValue: ""
+                defaultValue: " "
             }, 
             // profile
             name: {

@@ -83,7 +83,7 @@ class User extends Model {
         permissions: {
           type: STRING,
           allowNull: false,
-          defaultValue: ""
+          defaultValue: " "
         },
 
         // profile
