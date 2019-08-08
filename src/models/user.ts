@@ -122,21 +122,23 @@ class User extends Model {
       },
       {
         sequelize: opts.sequelize,
+        paranoid: true,
+        tableName: "user",
         ...opts.options,
         validate: {
+          ...opts.options,
           emailOrPhone() {
             if (!this.email && !this.phoneNumber) {
               throw new Error("Require either email or phoneNumber");
             }
           }
         },
-        paranoid: true,
         hooks: {
-          ...(opts.options || {}).hooks,
-          beforeCreate: async (user: User) => {
+          ...opts.options.hooks,
+          async beforeCreate(user: User) {
             user.password = await bcryptjs.hash(user.password, 10);
           },
-          beforeUpdate: async (user: User) => {
+          async beforeUpdate(user: User) {
             const password = await bcryptjs.hash(user.password, 10);
             user.set({
               ...user.toJSON(),
