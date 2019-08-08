@@ -121,8 +121,8 @@ class User extends Model {
         }
       },
       {
+        modelName: "user",
         paranoid: true,
-        tableName: "user",
         ...opts.options,
         validate: {
           ...(opts.options.validate || {}),
