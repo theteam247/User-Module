@@ -7,7 +7,8 @@ import {
   ModelAttributes,
   Model,
   ModelOptions,
-  InitOptions
+  InitOptions,
+  ModelType
 } from "sequelize";
 import { TwilioClientOptions } from "twilio/lib/rest/Twilio";
 import { Transporter } from "nodemailer";
@@ -46,7 +47,7 @@ export interface GuardOptions {
 
 export default interface UserModule {
   options: UserOptions;
-  model: typeof Model;
+  model: ModelType;
   router: Router;
   transporter: Transporter;
   twilio: Twilio;

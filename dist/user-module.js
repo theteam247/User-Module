@@ -26,13 +26,8 @@ const verification_1 = __importDefault(require("./controllers/verification"));
 const user_1 = __importDefault(require("./models/user"));
 const guard = express_jwt_permissions_1.default({});
 class Module {
-    guard(options = {}) {
-        return [
-            express_jwt_1.default(this.options.jwt),
-            guard.check(options.required || "").unless(options.unless || {})
-        ];
-    }
     constructor(options) {
+        this.model = user_1.default;
         this.options = lodash_1.default.merge({
             jwt: {
                 getToken: (req) => {
@@ -56,11 +51,16 @@ class Module {
         this.initTwilio();
         this.initRouter();
     }
+    guard(options = {}) {
+        return [
+            express_jwt_1.default(this.options.jwt),
+            guard.check(options.required || "").unless(options.unless || {})
+        ];
+    }
     initSequlize() {
         const sequelize = this.options.sequelize instanceof sequelize_1.Sequelize
             ? this.options.sequelize
             : new sequelize_1.Sequelize(this.options.sequelize);
-        this.model = user_1.default;
         this.model
             .define({
             attributes: this.options.model.attributes,

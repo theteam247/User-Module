@@ -20,7 +20,7 @@ const guard = permissions({});
 class Module implements UserModule {
   public options: UserOptions;
   public router: Router;
-  public model: typeof User;
+  public model = User;
   public guard(options: GuardOptions = {}) {
     return [
       jwt(this.options.jwt),
@@ -68,7 +68,6 @@ class Module implements UserModule {
         ? this.options.sequelize
         : new Sequelize(this.options.sequelize);
 
-    this.model = User;
     this.model
       .define({
         attributes: this.options.model.attributes,
