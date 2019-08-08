@@ -50,7 +50,8 @@ class Module implements UserModule {
             }
             return null;
           }
-        }
+        },
+        model: {}
       },
       options
     );

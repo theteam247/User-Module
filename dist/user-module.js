@@ -48,7 +48,8 @@ class Module {
                     }
                     return null;
                 }
-            }
+            },
+            model: {}
         }, options);
         this.initSequlize();
         this.initTransporter();
