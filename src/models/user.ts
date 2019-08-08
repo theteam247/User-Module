@@ -126,7 +126,7 @@ class User extends Model {
         tableName: "user",
         ...opts.options,
         validate: {
-          ...opts.options,
+          ...(opts.options.validate || {}),
           emailOrPhone() {
             if (!this.email && !this.phoneNumber) {
               throw new Error("Require either email or phoneNumber");
@@ -134,7 +134,7 @@ class User extends Model {
           }
         },
         hooks: {
-          ...opts.options.hooks,
+          ...(opts.options.hooks || {}),
           async beforeCreate(user: User) {
             user.password = await bcryptjs.hash(user.password, 10);
           },

@@ -92,11 +92,11 @@ class User extends sequelize_1.Model {
             }, passwordResetExpires: {
                 type: sequelize_1.DATE,
                 allowNull: true
-            } }), Object.assign({ sequelize: opts.sequelize, paranoid: true, tableName: "user" }, opts.options, { validate: Object.assign({}, opts.options, { emailOrPhone() {
+            } }), Object.assign({ sequelize: opts.sequelize, paranoid: true, tableName: "user" }, opts.options, { validate: Object.assign({}, (opts.options.validate || {}), { emailOrPhone() {
                     if (!this.email && !this.phoneNumber) {
                         throw new Error("Require either email or phoneNumber");
                     }
-                } }), hooks: Object.assign({}, opts.options.hooks, { beforeCreate(user) {
+                } }), hooks: Object.assign({}, (opts.options.hooks || {}), { beforeCreate(user) {
                     return __awaiter(this, void 0, void 0, function* () {
                         user.password = yield bcryptjs_1.default.hash(user.password, 10);
                     });
