@@ -8,7 +8,8 @@ import {
   UUID,
   UUIDV1,
   UUIDV4,
-  Model
+  Model,
+  InitOptions
 } from "sequelize";
 
 class User extends Model {
@@ -43,9 +44,8 @@ class User extends Model {
   };
 
   public static define(opts: {
-    sequelize: Sequelize;
     attributes?: ModelAttributes;
-    options?: ModelOptions;
+    options?: InitOptions;
   }) {
     User.init(
       {
@@ -121,7 +121,6 @@ class User extends Model {
         }
       },
       {
-        sequelize: opts.sequelize,
         paranoid: true,
         tableName: "user",
         ...opts.options,

@@ -92,7 +92,7 @@ class User extends sequelize_1.Model {
             }, passwordResetExpires: {
                 type: sequelize_1.DATE,
                 allowNull: true
-            } }), Object.assign({ sequelize: opts.sequelize, paranoid: true, tableName: "user" }, opts.options, { validate: Object.assign({}, (opts.options.validate || {}), { emailOrPhone() {
+            } }), Object.assign({ paranoid: true, tableName: "user" }, opts.options, { validate: Object.assign({}, (opts.options.validate || {}), { emailOrPhone() {
                     if (!this.email && !this.phoneNumber) {
                         throw new Error("Require either email or phoneNumber");
                     }

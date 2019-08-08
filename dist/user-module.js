@@ -62,8 +62,8 @@ class Module {
         this.model = user_1.default;
         this.model
             .define({
-            sequelize: sequelize,
-            attributes: this.options.model
+            attributes: this.options.model.attributes,
+            options: Object.assign({}, this.options.model.options, { sequelize })
         })
             .sync();
     }

@@ -1,4 +1,4 @@
-import { Sequelize, ModelAttributes, ModelOptions, Model } from "sequelize";
+import { Sequelize, ModelAttributes, Model, InitOptions } from "sequelize";
 declare class User extends Model {
     password: string;
     id: string;
@@ -26,9 +26,8 @@ declare class User extends Model {
     };
     comparePassword: (candidatePassword: string) => Promise<boolean>;
     static define(opts: {
-        sequelize: Sequelize;
         attributes?: ModelAttributes;
-        options?: ModelOptions;
+        options?: InitOptions;
     }): typeof User;
 }
 export default User;

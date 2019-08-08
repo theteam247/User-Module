@@ -70,8 +70,11 @@ class Module implements UserModule {
     this.model = User;
     this.model
       .define({
-        sequelize: sequelize,
-        attributes: this.options.model
+        attributes: this.options.model.attributes,
+        options: {
+          ...this.options.model.options,
+          sequelize
+        }
       })
       .sync();
   }

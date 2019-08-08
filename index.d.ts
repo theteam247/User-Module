@@ -6,7 +6,8 @@ import {
   Options as SequelizeOptions,
   ModelAttributes,
   Model,
-  ModelOptions
+  ModelOptions,
+  InitOptions
 } from "sequelize";
 import { TwilioClientOptions } from "twilio/lib/rest/Twilio";
 import { Transporter } from "nodemailer";
@@ -17,7 +18,10 @@ export interface UserOptions {
   sequelize: Sequelize | SequelizeOptions;
   jwt: JWTOptions;
   sign?: SignOptions;
-  model?: ModelAttributes;
+  model?: {
+    attributes: ModelAttributes,
+    options: InitOptions
+  };
   nodemailer?: any;
   mail?: {
     from: string;
