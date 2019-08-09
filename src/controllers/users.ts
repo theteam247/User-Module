@@ -254,7 +254,7 @@ export const postResetPassword = async (
   try {
     const user = await User.findOne({
       where: {
-        passwordResetToken: req.params.token,
+        passwordResetToken: req.body.token,
         passwordResetExpires: {
           [Op.gt]: Date.now()
         }
@@ -269,8 +269,8 @@ export const postResetPassword = async (
 
     await user.update({
       password: req.body.password,
-      passwordResetToken: "",
-      passwordResetExpires: ""
+      passwordResetToken: undefined,
+      passwordResetExpires: undefined
     });
 
     // sendResetPasswordEmail

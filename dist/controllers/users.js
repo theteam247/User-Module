@@ -199,7 +199,7 @@ exports.postResetPassword = (req, res, next) => __awaiter(this, void 0, void 0, 
     try {
         const user = yield user_1.default.findOne({
             where: {
-                passwordResetToken: req.params.token,
+                passwordResetToken: req.body.token,
                 passwordResetExpires: {
                     [sequelize_1.Op.gt]: Date.now()
                 }
@@ -210,8 +210,8 @@ exports.postResetPassword = (req, res, next) => __awaiter(this, void 0, void 0, 
         }
         yield user.update({
             password: req.body.password,
-            passwordResetToken: "",
-            passwordResetExpires: ""
+            passwordResetToken: undefined,
+            passwordResetExpires: undefined
         });
         // sendResetPasswordEmail
         const temp = template_1.default({
