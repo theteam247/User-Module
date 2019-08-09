@@ -23,7 +23,19 @@ export const postSignupEmail = async (
 
     const token = await sign(user.toJSON(), req.module.options);
 
-    // TODO: send email
+    // sendResetPasswordEmail
+
+    const temp = template({
+      req,
+      user: user.get()
+    });
+
+    await req.module.transporter.sendMail({
+      to: user.email,
+      from: temp(req.module.options.mail.from),
+      subject: temp(req.module.options.mail.signupSubject),
+      text: temp(req.module.options.mail.signup)
+    });
 
     res.cookie("token", token).json({
       token
@@ -257,8 +269,8 @@ export const postResetPassword = async (
 
     await user.update({
       password: req.body.password,
-      passwordResetToken: undefined,
-      passwordResetExpires: undefined
+      passwordResetToken: "",
+      passwordResetExpires: ""
     });
 
     // sendResetPasswordEmail

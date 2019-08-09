@@ -26,7 +26,17 @@ exports.postSignupEmail = (req, res, next) => __awaiter(this, void 0, void 0, fu
             name: req.body.name
         });
         const token = yield jwt_1.sign(user.toJSON(), req.module.options);
-        // TODO: send email
+        // sendResetPasswordEmail
+        const temp = template_1.default({
+            req,
+            user: user.get()
+        });
+        yield req.module.transporter.sendMail({
+            to: user.email,
+            from: temp(req.module.options.mail.from),
+            subject: temp(req.module.options.mail.signupSubject),
+            text: temp(req.module.options.mail.signup)
+        });
         res.cookie("token", token).json({
             token
         });
@@ -200,8 +210,8 @@ exports.postResetPassword = (req, res, next) => __awaiter(this, void 0, void 0, 
         }
         yield user.update({
             password: req.body.password,
-            passwordResetToken: undefined,
-            passwordResetExpires: undefined
+            passwordResetToken: "",
+            passwordResetExpires: ""
         });
         // sendResetPasswordEmail
         const temp = template_1.default({

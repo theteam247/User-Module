@@ -26,9 +26,8 @@ export interface UserOptions {
   nodemailer?: any;
   mail?: {
     from: string;
-    subject: string;
-    activateAccountSubject: string;
-    activateAccount: string;
+    signupSubject: string;
+    signup: string;
     forgotPasswordSubject: string;
     forgotPassword: string;
     resetPasswordSubject: string;
