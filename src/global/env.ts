@@ -7,7 +7,7 @@ const configs = {
   ...process.env
 };
 dot.object(configs);
-_.merge(
+export default _.merge(
   {
     mail: {
       forgotPasswordSubject: "Reset your password",
@@ -20,5 +20,3 @@ _.merge(
   },
   configs
 );
-
-export default configs;
