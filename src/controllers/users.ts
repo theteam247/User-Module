@@ -6,7 +6,7 @@ import { check, validationResult } from "express-validator";
 import { Op } from "sequelize";
 import template from "../util/template";
 import { sign } from "../util/jwt";
-import UserModel from "../models/user";
+import User from "../models/user";
 import UserModule from "../user-module";
 
 export const postSignupEmail = async (
@@ -15,7 +15,7 @@ export const postSignupEmail = async (
   next: NextFunction
 ) => {
   try {
-    const user = await UserModel.create({
+    const user = await User.create({
       email: req.body.email,
       password: req.body.password,
       name: req.body.name
@@ -34,7 +34,7 @@ export const postSignupEmail = async (
 };
 
 export const postSignupPhone = async (
-  req: Request & { module: UserModule; user: UserModel },
+  req: Request & { module: UserModule; user: User },
   res: Response,
   next: NextFunction
 ) => {
@@ -51,7 +51,7 @@ export const postSignupPhone = async (
         code: req.body.code
       });
 
-    const user = await UserModel.create({
+    const user = await User.create({
       ...req.body,
       phoneNumber: req.user.phoneNumber
     });
@@ -73,7 +73,7 @@ export const postLoginEmail = async (
 ) => {
   try {
     const { email, password } = req.body;
-    const user = await UserModel.findOne({
+    const user = await User.findOne({
       where: {
         email
       }
@@ -109,7 +109,7 @@ export const postLoginPhone = async (
     validationResult(req).throw();
 
     const { phoneNumber, password } = req.body;
-    const user = await UserModel.findOne({
+    const user = await User.findOne({
       where: {
         phoneNumber
       }
@@ -134,7 +134,7 @@ export const postLoginPhone = async (
 };
 
 export const postLogin2fa = async (
-  req: Request & { module: UserModule; user: UserModel },
+  req: Request & { module: UserModule; user: User },
   res: Response,
   next: NextFunction
 ) => {
@@ -158,7 +158,7 @@ export const postLogin2fa = async (
       });
 
     const { phoneNumber } = req.user;
-    const user = await UserModel.findOne({
+    const user = await User.findOne({
       where: {
         phoneNumber
       }
@@ -195,7 +195,7 @@ export const postForgotPassword = async (
     });
 
     // setRandomToken
-    const user = await UserModel.findOne({
+    const user = await User.findOne({
       where: {
         email: req.body.email
       }
@@ -238,7 +238,7 @@ export const postResetPassword = async (
   next: NextFunction
 ) => {
   try {
-    const user = await UserModel.findOne({
+    const user = await User.findOne({
       where: {
         passwordResetToken: req.params.token,
         passwordResetExpires: {
@@ -285,7 +285,7 @@ export const postAccounts = async (
   next: NextFunction
 ) => {
   try {
-    const user = await UserModel.findOne({
+    const user = await User.findOne({
       where: {
         id: req.params.id
       }
@@ -309,7 +309,7 @@ export const deleteAccounts = async (
   next: NextFunction
 ) => {
   try {
-    const user = await UserModel.findOne({
+    const user = await User.findOne({
       where: {
         id: req.params.id
       }

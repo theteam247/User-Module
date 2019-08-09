@@ -12,8 +12,8 @@ import unless from "express-unless";
 import { Sequelize } from "sequelize";
 import * as users from "./controllers/users";
 import verification from "./controllers/verification";
-import UserModule, { UserOptions, GuardOptions } from "../index.d";
 import User from "./models/user";
+import UserModule, { UserOptions, GuardOptions } from "../index.d";
 
 const guard = permissions({});
 

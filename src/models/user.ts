@@ -2,9 +2,7 @@ import bcryptjs from "bcryptjs";
 import {
   STRING,
   DATE,
-  Sequelize,
   ModelAttributes,
-  ModelOptions,
   UUID,
   UUIDV1,
   UUIDV4,
