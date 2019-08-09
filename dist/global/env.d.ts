@@ -1,11 +1,4 @@
-declare const _default: {
-    mail: {
-        forgotPasswordSubject: string;
-        forgotPassword: string;
-        resetPasswordSubject: string;
-        resetPassword: string;
-    };
-} & {
+declare const configs: {
     [x: string]: string;
 };
-export default _default;
+export default configs;
