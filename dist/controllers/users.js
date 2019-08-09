@@ -26,12 +26,13 @@ exports.postSignupEmail = (req, res, next) => __awaiter(this, void 0, void 0, fu
             name: req.body.name
         });
         const token = yield jwt_1.sign(user.toJSON(), req.module.options);
-        // sendResetPasswordEmail
+        // send Email
         const temp = template_1.default({
             req,
             user: user.get()
         });
-        yield req.module.transporter.sendMail({
+        // don't await it
+        req.module.transporter.sendMail({
             to: user.email,
             from: temp(req.module.options.mail.from),
             subject: temp(req.module.options.mail.signupSubject),
@@ -177,6 +178,7 @@ exports.postForgotPassword = (req, res, next) => __awaiter(this, void 0, void 0,
             passwordResetToken: token,
             passwordResetExpires
         });
+        // send Email
         const temp = template_1.default({
             req,
             user: user.get()
@@ -210,15 +212,16 @@ exports.postResetPassword = (req, res, next) => __awaiter(this, void 0, void 0, 
         }
         yield user.update({
             password: req.body.password,
-            passwordResetToken: undefined,
-            passwordResetExpires: undefined
+            passwordResetToken: null,
+            passwordResetExpires: null
         });
-        // sendResetPasswordEmail
+        // send Email
         const temp = template_1.default({
             req,
             user: user.get()
         });
-        yield req.module.transporter.sendMail({
+        // don't await it
+        req.module.transporter.sendMail({
             to: user.email,
             from: temp(req.module.options.mail.from),
             subject: temp(req.module.options.mail.resetPasswordSubject),

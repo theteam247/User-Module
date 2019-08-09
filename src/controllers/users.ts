@@ -23,14 +23,15 @@ export const postSignupEmail = async (
 
     const token = await sign(user.toJSON(), req.module.options);
 
-    // sendResetPasswordEmail
+    // send Email
 
     const temp = template({
       req,
       user: user.get()
     });
 
-    await req.module.transporter.sendMail({
+    // don't await it
+    req.module.transporter.sendMail({
       to: user.email,
       from: temp(req.module.options.mail.from),
       subject: temp(req.module.options.mail.signupSubject),
@@ -226,6 +227,8 @@ export const postForgotPassword = async (
       passwordResetExpires
     });
 
+    // send Email
+
     const temp = template({
       req,
       user: user.get()
@@ -269,18 +272,19 @@ export const postResetPassword = async (
 
     await user.update({
       password: req.body.password,
-      passwordResetToken: undefined,
-      passwordResetExpires: undefined
+      passwordResetToken: null,
+      passwordResetExpires: null
     });
 
-    // sendResetPasswordEmail
+    // send Email
 
     const temp = template({
       req,
       user: user.get()
     });
 
-    await req.module.transporter.sendMail({
+    // don't await it
+    req.module.transporter.sendMail({
       to: user.email,
       from: temp(req.module.options.mail.from),
       subject: temp(req.module.options.mail.resetPasswordSubject),
