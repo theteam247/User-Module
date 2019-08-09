@@ -1,2 +1,2 @@
-declare const _default: (str: string) => (data: Record<string, any>) => any;
+declare const _default: (data: Record<string, any>) => (str: string) => any;
 export default _default;

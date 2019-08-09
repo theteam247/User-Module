@@ -1,5 +1,5 @@
-export default (str: string) => {
-  return (data: Record<string, any>) =>
+export default (data: Record<string, any>) => {
+  return (str: string) =>
     new Function(`{${Object.keys(data).join(",")}}`, "return `" + str + "`")(
       data
     );

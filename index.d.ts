@@ -26,11 +26,13 @@ export interface UserOptions {
   nodemailer?: any;
   mail?: {
     from: string;
-    template: {
-      activate: string;
-      forgotPassword: string;
-      resetPassword: string;
-    };
+    subject: string;
+    activateAccountSubject: string;
+    activateAccount: string;
+    forgotPasswordSubject: string;
+    forgotPassword: string;
+    resetPasswordSubject: string;
+    resetPassword: string;
   };
   twilio?: {
     accountSid: string;
