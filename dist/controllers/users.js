@@ -68,7 +68,7 @@ exports.postLoginEmail = (req, res, next) => __awaiter(this, void 0, void 0, fun
         if (!user) {
             throw new http_errors_1.default.NotFound(`Email ${email} not found.`);
         }
-        if (!user.comparePassword(password)) {
+        if (!(yield user.comparePassword(password))) {
             throw new http_errors_1.default.BadRequest(`Invalid email or password.`);
         }
         const token = yield jwt_1.sign(user.toJSON(), req.module.options);
@@ -95,7 +95,7 @@ exports.postLoginPhone = (req, res, next) => __awaiter(this, void 0, void 0, fun
         if (!user) {
             throw new http_errors_1.default.NotFound(`Phone number ${phoneNumber} not found.`);
         }
-        if (!user.comparePassword(password)) {
+        if (!(yield user.comparePassword(password))) {
             throw new http_errors_1.default.BadRequest(`Invalid phone number or password.`);
         }
         const token = yield jwt_1.sign(user.toJSON(), req.module.options);

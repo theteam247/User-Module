@@ -1,4 +1,4 @@
-import { Sequelize, ModelAttributes, Model, InitOptions } from "sequelize";
+import { ModelAttributes, Model, InitOptions } from "sequelize";
 declare class User extends Model {
     password: string;
     id: string;
@@ -22,7 +22,7 @@ declare class User extends Model {
         picture: string;
         comparePassword: (candidatePassword: string) => Promise<boolean>;
         isNewRecord: boolean;
-        sequelize: Sequelize;
+        sequelize: import("sequelize/types").Sequelize;
     };
     comparePassword: (candidatePassword: string) => Promise<boolean>;
     static define(opts: {

@@ -1,8 +1,8 @@
 import { Transporter } from "nodemailer";
 import { Twilio } from "twilio";
 import express, { Router } from "express";
-import UserModule, { UserOptions, GuardOptions } from "../index.d";
 import User from "./models/user";
+import UserModule, { UserOptions, GuardOptions } from "../index.d";
 declare class Module implements UserModule {
     options: UserOptions;
     router: Router;

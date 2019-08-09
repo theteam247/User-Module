@@ -83,7 +83,7 @@ export const postLoginEmail = async (
       throw new createError.NotFound(`Email ${email} not found.`);
     }
 
-    if (!user.comparePassword(password)) {
+    if (!(await user.comparePassword(password))) {
       throw new createError.BadRequest(`Invalid email or password.`);
     }
 
@@ -119,7 +119,7 @@ export const postLoginPhone = async (
       throw new createError.NotFound(`Phone number ${phoneNumber} not found.`);
     }
 
-    if (!user.comparePassword(password)) {
+    if (!(await user.comparePassword(password))) {
       throw new createError.BadRequest(`Invalid phone number or password.`);
     }
 
