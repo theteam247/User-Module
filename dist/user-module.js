@@ -85,6 +85,7 @@ class Module {
             this.router.post("/verification", verification_1.default);
             this.router.post("/signup/phone", this.guard(), users.postSignupPhone);
             this.router.post("/login/2fa", this.guard(), users.postLogin2fa);
+            this.router.post("/2fa", this.guard(), users.post2fa);
         }
         this.router.post("/signup/email", users.postSignupEmail);
         this.router.post("/login/email", users.postLoginEmail);

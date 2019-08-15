@@ -21,8 +21,6 @@ export const postSignupEmail = async (
       name: req.body.name
     });
 
-    const token = await sign(user.toJSON(), req.module.options);
-
     // send Email
 
     const temp = template({
@@ -37,6 +35,8 @@ export const postSignupEmail = async (
       subject: temp(req.module.options.mail.signupSubject),
       text: temp(req.module.options.mail.signup)
     });
+
+    const token = await sign(user.toJSON(), req.module.options);
 
     res.cookie("token", token).json({
       token
@@ -180,6 +180,52 @@ export const postLogin2fa = async (
     if (!user) {
       throw new createError.NotFound(`Phone number ${phoneNumber} not found.`);
     }
+
+    const token = await sign(user.toJSON(), req.module.options);
+
+    res.cookie("token", token).json({
+      token
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const post2fa = async (
+  req: Request & { module: UserModule; user: User },
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    await check("code", "Code is not valid")
+      .exists()
+      .run(req);
+    validationResult(req).throw();
+
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      throw errors;
+    }
+
+    await req.module.twilio.verify
+      .services(req.module.options.twilio.verifySid)
+      .verificationChecks.create({
+        to: req.user.phoneNumber,
+        code: req.body.code
+      });
+
+    const { phoneNumber } = req.user;
+    const [user] = await User.findOrCreate({
+      where: {
+        phoneNumber
+      },
+      defaults: {
+        email: req.body.email,
+        password: req.body.password,
+        name: req.body.name
+      }
+    });
 
     const token = await sign(user.toJSON(), req.module.options);
 

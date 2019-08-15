@@ -18,6 +18,10 @@ export declare const postLogin2fa: (req: Request & {
     module: UserModule;
     user: User;
 }, res: Response, next: NextFunction) => Promise<void>;
+export declare const post2fa: (req: Request & {
+    module: UserModule;
+    user: User;
+}, res: Response, next: NextFunction) => Promise<void>;
 export declare const postForgotPassword: (req: Request & {
     module: UserModule;
 }, res: Response, next: NextFunction) => Promise<void>;

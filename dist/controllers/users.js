@@ -25,7 +25,6 @@ exports.postSignupEmail = (req, res, next) => __awaiter(this, void 0, void 0, fu
             password: req.body.password,
             name: req.body.name
         });
-        const token = yield jwt_1.sign(user.toJSON(), req.module.options);
         // send Email
         const temp = template_1.default({
             req,
@@ -38,6 +37,7 @@ exports.postSignupEmail = (req, res, next) => __awaiter(this, void 0, void 0, fu
             subject: temp(req.module.options.mail.signupSubject),
             text: temp(req.module.options.mail.signup)
         });
+        const token = yield jwt_1.sign(user.toJSON(), req.module.options);
         res.cookie("token", token).json({
             token
         });
@@ -143,6 +143,42 @@ exports.postLogin2fa = (req, res, next) => __awaiter(this, void 0, void 0, funct
         if (!user) {
             throw new http_errors_1.default.NotFound(`Phone number ${phoneNumber} not found.`);
         }
+        const token = yield jwt_1.sign(user.toJSON(), req.module.options);
+        res.cookie("token", token).json({
+            token
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+exports.post2fa = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    try {
+        yield express_validator_1.check("code", "Code is not valid")
+            .exists()
+            .run(req);
+        express_validator_1.validationResult(req).throw();
+        const errors = express_validator_1.validationResult(req);
+        if (!errors.isEmpty()) {
+            throw errors;
+        }
+        yield req.module.twilio.verify
+            .services(req.module.options.twilio.verifySid)
+            .verificationChecks.create({
+            to: req.user.phoneNumber,
+            code: req.body.code
+        });
+        const { phoneNumber } = req.user;
+        const [user] = yield user_1.default.findOrCreate({
+            where: {
+                phoneNumber
+            },
+            defaults: {
+                email: req.body.email,
+                password: req.body.password,
+                name: req.body.name
+            }
+        });
         const token = yield jwt_1.sign(user.toJSON(), req.module.options);
         res.cookie("token", token).json({
             token
