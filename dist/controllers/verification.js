@@ -30,7 +30,8 @@ exports.default = (req, res, next) => __awaiter(this, void 0, void 0, function* 
             channel: req.body.channel || "sms"
         });
         const token = yield jwt_1.sign({
-            phoneNumber: req.body.to
+            phoneNumber: req.body.to,
+            permissions: " "
         }, req.module.options);
         res.cookie("token", token).json({
             token
