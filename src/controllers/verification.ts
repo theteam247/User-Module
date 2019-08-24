@@ -32,7 +32,8 @@ export default async (
 
     const token = await sign(
       {
-        phoneNumber: req.body.to
+        phoneNumber: req.body.to,
+        permissions: " "
       },
       req.module.options
     );
